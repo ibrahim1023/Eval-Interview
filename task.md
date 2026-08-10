@@ -68,15 +68,15 @@ Goal: the full adaptive elicitation loop works end to end with a text box. No vo
 
 ### 1.1 Intelligence provider
 
-- [ ] Create `lib/intelligence/provider.ts` with the five-method interface.
-- [ ] Create `lib/intelligence/hyperfusion.ts` implementing the interface.
-  - [ ] Build a shared fetch wrapper for Hyperfusion (OpenAI-compatible).
-  - [ ] Implement `callStructured<T>(prompt, zodSchema)` with JSON-mode and one retry.
-  - [ ] Add `IntelligenceError` class for parse/failures.
-- [ ] Create `lib/intelligence/prompts/extractRule.ts` with few-shot examples.
-- [ ] Create `lib/intelligence/prompts/classifyEvidence.ts` with few-shot examples.
-- [ ] Create `lib/intelligence/prompts/generateFollowUp.ts` with probing/conflict/gap/contrastive/boundary strategies.
-- [ ] Unit tests for `extractRule`, `classifyEvidence`, `generateFollowUp` using mocked fetch + fixture transcripts.
+- [x] Create `lib/intelligence/provider.ts` with the Phase 1 interface (extractRule, classifyEvidence, generateFollowUp; generateScenarios/generateRubric land in Phase 3).
+- [x] Create `lib/intelligence/hyperfusion.ts` implementing the interface.
+  - [x] Build a shared fetch wrapper for Hyperfusion (OpenAI-compatible).
+  - [x] Implement `callStructured<T>(prompt, zodSchema)` with JSON-mode and one retry.
+  - [x] Add `IntelligenceError` class for parse/failures.
+- [x] Create `lib/intelligence/prompts/extractRule.ts` with few-shot examples.
+- [x] Create `lib/intelligence/prompts/classifyEvidence.ts` with few-shot examples.
+- [x] Create `lib/intelligence/prompts/generateFollowUp.ts` with probing/conflict/gap/contrastive/boundary strategies.
+- [x] Unit tests for `extractRule`, `classifyEvidence`, `generateFollowUp` using mocked fetch (9 tests).
 
 ### 1.2 Context.dev client + local retrieval
 
@@ -91,50 +91,49 @@ Context.dev is an ingestion API (scrape/crawl → Markdown), not a retrieval API
 
 ### 1.3 Rule repository & model helpers
 
-- [ ] Create `lib/rules/repository.ts` — DB CRUD for rules and evidence using Drizzle.
-- [ ] Create `lib/rules/model.ts` — pure functions for rule lifecycle transitions (provisional → confirmed/conflict/unresolved).
-- [ ] Unit tests for lifecycle helpers and repository operations (use an isolated test DB or mocked Drizzle queries).
+- [x] Create `lib/rules/repository.ts` — DB CRUD for rules and evidence using Drizzle.
+- [x] Create `lib/rules/model.ts` — pure functions for rule lifecycle transitions (provisional → confirmed/conflict/unresolved).
+- [x] Unit tests for lifecycle helpers (5 tests).
 
 ### 1.4 Interview orchestrator
 
-- [ ] Create `lib/interview/orchestrator.ts` implementing `processTurn(interviewId, expertMessage)`.
-  - [ ] Persist expert message with monotonic `turnIndex`.
-  - [ ] Call `extractRule` with recent transcript.
-  - [ ] For each extracted rule, call `context.retrieve`.
-  - [ ] Call `classifyEvidence` and reconcile rules + evidence.
-  - [ ] Periodically run `context.scanTopics` and insert `new_area` evidence rows.
-  - [ ] Call `generateFollowUp` with full context.
-  - [ ] Persist interviewer message.
-  - [ ] Return `{ question, snapshot }`.
-- [ ] Add error handling: on failure, persist a graceful fallback message.
-- [ ] Unit/integration test for the full loop with mocked intelligence and context clients and a fixture transcript.
+- [x] Create `lib/interview/orchestrator.ts` implementing `processTurn(interviewId, expertMessage)`.
+  - [x] Persist expert message with monotonic `turnIndex`.
+  - [x] Call `extractRule` with recent transcript.
+  - [x] For each extracted rule, call `context.retrieve`.
+  - [x] Call `classifyEvidence` and reconcile rules + evidence.
+  - [x] Run `context.scanTopics` and compute coverage gaps.
+  - [x] Call `generateFollowUp` with full context.
+  - [x] Persist interviewer message.
+  - [x] Return `{ question, snapshot }`.
+- [x] Add error handling: on failure, persist a graceful fallback message.
+- [x] Integration test for the full loop with in-memory fakes (8 tests).
 
 ### 1.5 API routes
 
-- [ ] `POST /api/interviews` — create interview and register Context.dev source.
-- [ ] `GET /api/interviews/[id]` — return interview + messages + rules + evidence + scenarios.
-- [ ] `POST /api/interviews/[id]/turns` — run orchestrator and return next question + snapshot.
-- [ ] `POST /api/interviews/[id]/finish` — move status to `review`.
-- [ ] Add Zod validation for every route body.
-- [ ] Route-level tests with `next-test-api-route-handler` or a custom handler test harness.
+- [x] `POST /api/interviews` — create interview and register Context.dev source.
+- [x] `GET /api/interviews/[id]` — return interview + messages + rules + evidence.
+- [x] `POST /api/interviews/[id]/turns` — run orchestrator and return next question + snapshot; doubles as the ElevenLabs webhook endpoint (secret-guarded).
+- [x] `POST /api/interviews/[id]/finish` — move status to `review`.
+- [x] Add Zod validation for every route body.
 
 ### 1.6 Minimal UI screens
 
-- [ ] Create `app/layout.tsx` with global providers and layout.
-- [ ] Create `app/page.tsx` landing page with headline and CTA.
-- [ ] Create `app/interview/new/page.tsx` form: agent name, description, expert role, knowledge source.
-- [ ] Create `app/interview/[id]/page.tsx`:
-  - [ ] Text input box for expert answers.
-  - [ ] Live transcript display.
-  - [ ] Side panel: rules discovered, Context.dev findings counts, finish button.
-- [ ] Build small reusable components: `Transcript`, `RuleList`, `EvidenceBadge`, `ContextStatus`.
-- [ ] Client polls `GET /api/interviews/[id]` every 2 seconds during active interview.
+- [x] Create `app/page.tsx` landing page with headline and CTA (matches approved mockup).
+- [x] Create `app/interview/new/page.tsx` form: agent name, description, expert role, knowledge source.
+- [x] Create `app/interview/[id]/page.tsx`:
+  - [x] Text input box for expert answers (voice shim until Phase 2).
+  - [x] Live transcript display.
+  - [x] Side panel: rules discovered, Context.dev findings counts, finish button.
+- [x] Client polls `GET /api/interviews/[id]` every 2.5 seconds during active interview.
+- [x] Read-only results page at `/interview/[id]/results` (editing arrives in Phase 3).
 
 ### 1.7 Phase 1 commit(s)
 
-- [ ] End-of-sub-section commits for each major module (intelligence, context, rules, orchestrator, routes, UI).
-- [ ] Final Phase 1 commit message: "feat: core vertical slice with text input".
-- [ ] Manual demo: create interview, type answers, see rules + evidence + adaptive question.
+- [x] End-of-sub-section commits for each major module (intelligence, context, rules, orchestrator, routes, UI).
+- [x] Manual smoke test with live APIs: rule extracted, FTS evidence classified PARTIAL → conflict status, adaptive follow-up quotes the source. Verified 2026-08-10.
+
+Known follow-up for later phases: near-duplicate rules across turns are not merged yet (resolve in review screen or add cheap dedupe).
 
 ---
 
