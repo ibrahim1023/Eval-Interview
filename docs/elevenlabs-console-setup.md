@@ -46,33 +46,11 @@ Add one webhook tool in the agent's **Tools** section. Paste this exact JSON:
   "type": "webhook",
   "name": "submit_expert_turn",
   "description": "Submit the expert's latest answer and receive the next interview question from the EvalInterview engine.",
-  "expects_response": true,
-  "response_timeout_secs": 20,
-  "parameters": [
-    {
-      "name": "content",
-      "type": "string",
-      "description": "The exact text of the expert's latest answer.",
-      "required": true
-    }
-  ],
-  "dynamic_variables": {
-    "dynamic_variable_placeholders": {}
-  },
-  "assignments": [],
-  "interruption_mode": "allow",
-  "pre_tool_speech": "auto",
-  "tool_call_sound": null,
-  "tool_call_sound_behavior": "auto",
-  "execution_mode": "immediate",
-  "response_mocks": [],
   "api_schema": {
     "url": "https://YOUR_APP_URL/api/interviews/INTERVIEW_ID/turns",
     "method": "POST",
-    "headers": {
-      "Content-Type": "application/json",
-      "x-webhook-secret": "YOUR_WEBHOOK_SECRET"
-    },
+    "path_params_schema": [],
+    "query_params_schema": [],
     "request_body_schema": {
       "type": "object",
       "properties": {
@@ -82,8 +60,32 @@ Add one webhook tool in the agent's **Tools** section. Paste this exact JSON:
         }
       },
       "required": ["content"]
-    }
-  }
+    },
+    "request_headers": [
+      {
+        "name": "Content-Type",
+        "value": "application/json"
+      },
+      {
+        "name": "x-webhook-secret",
+        "value": "YOUR_WEBHOOK_SECRET"
+      }
+    ],
+    "content_type": "application/json",
+    "auth_connection": null
+  },
+  "response_timeout_secs": 20,
+  "dynamic_variables": {
+    "dynamic_variable_placeholders": {}
+  },
+  "assignments": [],
+  "interruption_mode": "allow",
+  "pre_tool_speech": "auto",
+  "tool_call_sound": null,
+  "tool_call_sound_behavior": "auto",
+  "execution_mode": "immediate",
+  "tool_error_handling_mode": "auto",
+  "response_mocks": []
 }
 ```
 
