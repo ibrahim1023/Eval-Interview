@@ -5,65 +5,70 @@ import vendor SDKs directly. All integrations are real in the production path â€
 fixtures/mocks only in tests.
 
 ```bash
+DATABASE_URL=
 ELEVENLABS_API_KEY=
 ELEVENLABS_AGENT_ID=
+CONTEXT_API_BASE_URL=https://api.context.dev/v1
 CONTEXT_API_KEY=
-LLM_API_KEY=
-DATABASE_URL=
+HYPERFUSION_API_KEY=
+HYPERFUSION_BASE_URL=https://api.hyperfusion.io/v1
+ELEVENLABS_WEBHOOK_SECRET=
 ```
 
 ---
 
 ## 1. ElevenLabs (voice interface)
 
-**Role:** transport between the human expert and the interview orchestrator.
-Owns STT/TTS and conversational turn-taking; does **not** own interview logic.
+**Role:** thin voice transport between the human expert and the interview
+orchestrator. Owns STT/TTS and conversational turn-taking; does **not** own
+interview logic or dynamic context. This design keeps ElevenLabs credit usage
+low: the system prompt is static and minimal, and the only tool call per turn is
+`submit_expert_turn`.
+
+### Agent configuration
+
+```typescript
+// lib/elevenlabs/agent-config.ts
+buildAgentConfig(input: {
+  interviewId: string
+  baseUrl: string
+  webhookSecret?: string
+})
+```
+
+The agent config contains:
+- **System prompt:** static and minimal. The agent is instructed to always call
+  `submit_expert_turn` after the expert speaks and to speak exactly the question
+  returned by the tool.
+- **First message:** brief intro that sets the interview goal.
+- **Webhook tool:** `submit_expert_turn` POSTs the expert's exact answer to
+  `POST /api/interviews/[id]/turns` and returns the next question.
 
 ### Interface
 
 ```typescript
-// lib/elevenlabs/index.ts
+// lib/elevenlabs/client.ts
 interface VoiceSessionClient {
   startSession(input: {
     interviewId: string
-    interviewerContext: InterviewerContext
+    baseUrl: string
+    webhookSecret?: string
   }): Promise<{ conversationId: string; clientToken: string }>
-
-  updateContext(input: {
-    conversationId: string
-    interviewerContext: InterviewerContext
-  }): Promise<void>
 
   sendInterviewerTurn(input: {
     conversationId: string
     question: string
   }): Promise<void>
 }
-
-type InterviewerContext = {
-  agentName: string
-  agentDescription: string
-  expertRole: string
-  existingRules: RuleSummary[]
-  retrievedEvidence: EvidenceSummary[]
-  unresolvedConflicts: ConflictSummary[]
-  coverageGaps: string[]
-  transcriptTail: Message[]       // recent turns for continuity
-}
 ```
 
 ### Design notes
 
-- The ElevenLabs agent's system prompt is assembled server-side from
-  `InterviewerContext` and refreshed after every loop iteration via
-  `updateContext` â€” this is how Context.dev findings "influence subsequent
-  questions."
-- Transcript turns arrive via webhook or client-side callback and are posted to
-  `POST /api/interviews/[id]/turns`, which runs the orchestrator loop and returns
-  the next question to speak.
-- **Interview style requirements** (baked into the system prompt): conversational,
-  one question at a time, no fixed question list, probe hedges ("usually",
-  "large"), never silently resolve conflicts.
+- The orchestrator runs server-side and returns the next question via the
+  `submit_expert_turn` tool response. The ElevenLabs agent simply speaks it.
+- No mid-conversation context updates are pushed to ElevenLabs; the behavior
+  model, evidence, and gaps live in Postgres and are used only by the
+  orchestrator's LLM calls.
 - Phase 1 develops against a text shim implementing the same caller contract;
   Phase 2 swaps in the real voice path with zero orchestrator changes.
 - Graceful degradation: if the voice session drops, the interview resumes from
@@ -223,7 +228,7 @@ rubric grading, documented in the exported README).
 
 | Risk | Mitigation |
 | ---- | ---------- |
-| ElevenLabs agent context updates are lossy mid-conversation | Keep context compact (summaries, not full transcripts); refresh after each loop, not mid-turn |
+| ElevenLabs credit usage per turn | Thin voice transport with static system prompt; all reasoning happens server-side in the orchestrator |
 | Context.dev retrieval latency per turn | Cap chunks; show persisted side-panel state immediately; ask follow-up only after loop completes |
 | LLM structured-output drift | Zod validation + one retry + prompt versioning; golden tests on extraction fixtures |
 | Voice transcript errors corrupting rules | Rules stay `provisional` until evidence reconciliation + expert confirmation; review screen is the final gate |
