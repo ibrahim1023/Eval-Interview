@@ -1,3 +1,4 @@
+import { sql } from "drizzle-orm";
 import { pgTable, uuid, text, integer, jsonb, timestamp, uniqueIndex, index } from "drizzle-orm/pg-core";
 
 export const interviews = pgTable(
@@ -90,4 +91,26 @@ export const scenarios = pgTable(
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (table) => [index("scenarios_interview_idx").on(table.interviewId)],
+);
+
+export const sourceChunks = pgTable(
+  "source_chunks",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    interviewId: uuid("interview_id")
+      .notNull()
+      .references(() => interviews.id, { onDelete: "cascade" }),
+    url: text("url").notNull(),
+    title: text("title").notNull().default(""),
+    content: text("content").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    uniqueIndex("source_chunks_interview_url_idx").on(table.interviewId, table.url),
+    index("source_chunks_interview_idx").on(table.interviewId),
+    index("source_chunks_fts_idx").using(
+      "gin",
+      sql`to_tsvector('english', ${table.title} || ' ' || ${table.content})`,
+    ),
+  ],
 );
