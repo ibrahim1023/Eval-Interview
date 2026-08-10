@@ -43,7 +43,7 @@ async function main() {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "gpt-4o-mini", // change to a model you actually have access to
+        model: "openai/gpt-oss-120b",
         messages: [{ role: "user", content: "Say hello in one word." }],
         max_tokens: 10,
       }),
@@ -64,7 +64,7 @@ async function main() {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "gpt-4o-mini",
+        model: "openai/gpt-oss-120b",
         messages: [{ role: "user", content: "Return JSON: {\"ok\": true}" }],
         response_format: { type: "json_object" },
       }),

@@ -76,33 +76,46 @@ interface VoiceSessionClient {
 
 ## 2. Context.dev (organizational knowledge)
 
-**Role:** retrieval over the org's docs/repos/policies. Required part of the
-primary workflow, not an add-on. Use Context.dev's existing source capabilities
-(docs URL, GitHub repo, docs site, uploaded text) — do not build connectors.
+**Role:** ingestion of the org's docs/policies into clean Markdown. Verified in
+Phase 0: Context.dev is a scraping API, **not** a retrieval API — so we crawl
+once per interview and retrieve locally from Postgres.
+
+### Verified endpoints (Phase 0)
+
+| Endpoint | Cost | Purpose |
+| -------- | ---- | ------- |
+| `GET /web/scrape/markdown?url=...` | 1 credit/page | Page → clean Markdown |
+| `GET /web/scrape/sitemap?domain=...&search=...` | 1–2 credits | URL discovery, optional relevance filter |
+| `POST /web/search` `{ query, numResults }` | 1 credit/10 results | Web search fallback |
+
+Auth: `Authorization: Bearer $CONTEXT_API_KEY`.
 
 ### Interface
 
 ```typescript
-// lib/context/index.ts
+// lib/context/client.ts
 interface ContextClient {
   registerSource(input: {
     interviewId: string
-    source: KnowledgeSource          // docs URL | GitHub repo | docs site | text upload
-  }): Promise<{ sourceId: string }>
+    source: { type: "docs_url"; url: string }
+  }): Promise<{ pageCount: number }>
+  // sitemap discover → scrape markdown per page → store in source_chunks
 
   retrieve(input: {
-    sourceId: string
+    interviewId: string
     query: string
-    limit?: number
+    limit?: number          // default 6
   }): Promise<EvidenceChunk[]>
+  // Postgres full-text search over source_chunks
 
   scanTopics(input: {
-    sourceId: string
-  }): Promise<TopicArea[]>           // for coverage-gap discovery
+    interviewId: string
+  }): Promise<TopicArea[]>  // sitemap URLs vs. topics covered so far
 }
 
 type EvidenceChunk = {
-  source: string        // e.g. "engineering-handbook/migrations"
+  source: string        // page URL, e.g. "https://handbook.example.com/migrations"
+  title: string
   content: string
   score: number
 }
@@ -110,10 +123,10 @@ type EvidenceChunk = {
 
 ### Where it's used
 
-1. **Per-turn retrieval loop** — after `extractRule()`, query with the extracted
-   concepts; results feed `classifyEvidence()`.
-2. **Coverage scan** — `scanTopics()` vs. topics already discussed →
-   `NEW_RELATED_AREA` evidence rows (`ruleId = null`) → gap questions.
+1. **Per-turn retrieval loop** — after `extractRule()`, query the local chunk
+   store; results feed `classifyEvidence()`.
+2. **Coverage scan** — `scanTopics()` compares sitemap-derived topic areas with
+   topics already discussed → `NEW_RELATED_AREA` evidence rows (`ruleId = null`).
 
 ### Query strategy
 
@@ -122,11 +135,18 @@ type EvidenceChunk = {
 - Cap chunks per turn (suggested 5–8) to keep the classifier prompt focused.
 - Persist every retrieved chunk as an `Evidence` row with its classification —
   provenance requires the record, and the UI renders Context.dev activity live.
+- Crawl once at interview creation; do not re-scrape per turn (credit-efficient).
 
 ## 3. LLM Provider (`IntelligenceProvider`)
 
 **Role:** all reasoning. One provider; no multi-model routing. Every method takes
 typed input and returns Zod-validated structured output.
+
+**Verified in Phase 0:** Hyperfusion (`https://api.hyperfusion.io/v1`), model
+`openai/gpt-oss-120b`, OpenAI-compatible chat completions with
+`response_format: { type: "json_object" }`. It is a reasoning model — responses
+carry `reasoning_content` that consumes `max_tokens`; use generous token limits
+(≥ 2048).
 
 ```typescript
 // lib/intelligence/provider.ts

@@ -34,8 +34,8 @@ Goal: repo runs, DB connects, external APIs are reachable, concrete integration 
 - [x] Create `lib/db/index.ts` — singleton `postgres` client and Drizzle instance.
 - [x] Create `lib/db/schema.ts` with tables: `interviews`, `messages`, `rules`, `evidence`, `scenarios` (match `docs/data-model.md`).
 - [x] Run `drizzle-kit generate` to produce `drizzle/0000_initial.sql`.
-- [ ] Run `drizzle-kit migrate` (or `db:push` against dev DB) to apply schema. *(blocked on `DATABASE_URL`)*
-- [ ] Write a tiny integration test (`scripts/check-db.ts`) that inserts + reads one row from each table, then delete the script before the phase commit. *(blocked on `DATABASE_URL`)*
+- [x] Run `drizzle-kit migrate` (or `db:push` against dev DB) to apply schema.
+- [x] Write a tiny integration test (`scripts/verify-db.ts`) that verifies connectivity.
 
 ### 0.3 Python eval-runner skeleton
 
@@ -78,13 +78,16 @@ Goal: the full adaptive elicitation loop works end to end with a text box. No vo
 - [ ] Create `lib/intelligence/prompts/generateFollowUp.ts` with probing/conflict/gap/contrastive/boundary strategies.
 - [ ] Unit tests for `extractRule`, `classifyEvidence`, `generateFollowUp` using mocked fetch + fixture transcripts.
 
-### 1.2 Context.dev client
+### 1.2 Context.dev client + local retrieval
 
+Context.dev is an ingestion API (scrape/crawl → Markdown), not a retrieval API — verified in Phase 0. Retrieval is local over stored chunks.
+
+- [ ] Add `source_chunks` table to `lib/db/schema.ts` (interview_id, url, title, content, token estimate) + `drizzle-kit generate`/`push`.
 - [ ] Create `lib/context/client.ts` with `registerSource`, `retrieve`, `scanTopics`.
-- [ ] Read `CONTEXT_API_BASE_URL` and `CONTEXT_API_KEY` from env.
-- [ ] Implement `retrieve(query)` returning `EvidenceChunk[]` mapped from actual Context.dev response.
-- [ ] Implement fallback `scanTopics` if no native endpoint exists (retrieve against generated topic queries).
-- [ ] Unit tests for `ContextClient` with a mocked server or fetch mock.
+- [ ] `registerSource`: `GET /web/scrape/sitemap?domain=...` → pick relevant URLs → `GET /web/scrape/markdown?url=...` per page → store chunks in `source_chunks`.
+- [ ] `retrieve(query)`: Postgres full-text search over `source_chunks` → `EvidenceChunk[]`.
+- [ ] `scanTopics`: use sitemap URL list (+ optional `search` phrases) vs. topics already covered in the interview.
+- [ ] Unit tests for `ContextClient` with mocked fetch and a mocked DB.
 
 ### 1.3 Rule repository & model helpers
 

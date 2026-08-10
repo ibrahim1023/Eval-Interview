@@ -90,7 +90,7 @@ Add one webhook tool in the agent's **Tools** section. Paste this exact JSON:
 ```
 
 Replace:
-- `YOUR_APP_URL` — your deployed app URL (e.g., `https://evalinterview.vercel.app`)
+- `YOUR_APP_URL` — `https://evalinterview.vercel.app`
 - `INTERVIEW_ID` — the interview UUID from your database
 - `YOUR_WEBHOOK_SECRET` — the same secret set in `.env` as `ELEVENLABS_WEBHOOK_SECRET`
 

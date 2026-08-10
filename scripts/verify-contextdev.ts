@@ -16,35 +16,27 @@ if (!contextApiKey) {
 
 const contextHeaders: Record<string, string> = {
   Authorization: `Bearer ${contextApiKey}`,
-  "Content-Type": "application/json",
 };
+
+async function probe(name: string, path: string) {
+  try {
+    const res = await fetch(`${contextBaseUrl}${path}`, { headers: contextHeaders });
+    const body = await res.text();
+    console.log(`\n${name} (${path}):`);
+    console.log(`  status: ${res.status}`);
+    console.log(`  body: ${body.slice(0, 1500)}`);
+  } catch (err) {
+    console.error(`\n${name} failed:`, err);
+  }
+}
 
 async function main() {
   console.log("Context.dev API verification");
   console.log(`Base URL: ${contextBaseUrl}`);
 
-  // The exact endpoints depend on Context.dev's API surface.
-  // Update this script once the real API docs are reviewed.
-
-  const endpoints = [
-    { name: "list sources", path: "/sources" },
-    { name: "query", path: "/query" },
-    { name: "search", path: "/search" },
-  ];
-
-  for (const endpoint of endpoints) {
-    try {
-      const res = await fetch(`${contextBaseUrl}${endpoint.path}`, {
-        headers: contextHeaders,
-      });
-      const body = await res.text();
-      console.log(`\n${endpoint.name} (${endpoint.path}):`);
-      console.log(`  status: ${res.status}`);
-      console.log(`  body: ${body.slice(0, 2000)}`);
-    } catch (err) {
-      console.error(`\n${endpoint.name} failed:`, err);
-    }
-  }
+  await probe("scrape markdown", "/web/scrape/markdown?url=https://example.com");
+  await probe("sitemap crawl", "/web/scrape/sitemap?domain=example.com");
+  await probe("web search", "/web/search?query=test");
 }
 
 main().catch((err) => {

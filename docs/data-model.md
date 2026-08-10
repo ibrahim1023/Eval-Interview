@@ -103,6 +103,25 @@ Valid expected behaviors are the spec's action vocabulary (`approve`, `reject`,
 `manual_review`) — not just pass/fail. `UNRESOLVED` rules never produce graded
 scenarios.
 
+### SourceChunk (added after Phase 0 verification)
+
+Context.dev is an ingestion API (scrape → Markdown), not a retrieval API, so we
+store crawled pages locally and search them ourselves.
+
+```typescript
+type SourceChunk = {
+  id: string
+  interviewId: string
+  url: string
+  title: string
+  content: string          // Markdown body from Context.dev scrape
+  createdAt: string
+}
+```
+
+Retrieval is Postgres full-text search over `content` (+ `title`). One row per
+crawled page; chunking is page-level at MVP.
+
 ### Suggested DDL sketch
 
 ```sql
@@ -168,6 +187,19 @@ create index on messages (interview_id, turn_index);
 create index on rules (interview_id, status);
 create index on evidence (interview_id);
 create index on scenarios (interview_id);
+
+create table source_chunks (
+  id uuid primary key default gen_random_uuid(),
+  interview_id uuid not null references interviews(id) on delete cascade,
+  url text not null,
+  title text not null default '',
+  content text not null,
+  created_at timestamptz not null default now(),
+  unique (interview_id, url)
+);
+
+create index on source_chunks (interview_id);
+create index on source_chunks using gin (to_tsvector('english', title || ' ' || content));
 ```
 
 ---
