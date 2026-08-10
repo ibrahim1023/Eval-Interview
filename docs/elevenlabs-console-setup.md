@@ -9,7 +9,7 @@ single reusable agent and pass the interview ID in the webhook URL.
 ## 1. Agent Name
 
 ```text
-evalinterview-interviewer
+eval-builder
 ```
 
 ## 2. System Prompt
@@ -39,39 +39,41 @@ en
 
 ## 5. Webhook Tool
 
-Add one webhook tool with these settings:
-
-| Field | Value |
-|-------|-------|
-| **Name** | `submit_expert_turn` |
-| **Description** | `Submit the expert's latest answer and receive the next interview question from the EvalInterview engine.` |
-| **Method** | `POST` |
-| **URL** | `https://YOUR_APP_URL/api/interviews/INTERVIEW_ID/turns` |
-| **Response timeout** | `20` seconds |
-
-### Headers
+Add one webhook tool in the agent's **Tools** section. Paste this exact JSON:
 
 ```json
-{
-  "Content-Type": "application/json",
-  "x-webhook-secret": "YOUR_ELEVENLABS_WEBHOOK_SECRET"
-}
-```
-
-### Request Body Schema
-
-```json
-{
-  "type": "object",
-  "properties": {
-    "content": {
-      "type": "string",
-      "description": "The exact text of the expert's latest answer."
+[
+  {
+    "type": "webhook",
+    "name": "submit_expert_turn",
+    "description": "Submit the expert's latest answer and receive the next interview question from the EvalInterview engine.",
+    "response_timeout_secs": 20,
+    "api_schema": {
+      "url": "https://YOUR_APP_URL/api/interviews/INTERVIEW_ID/turns",
+      "method": "POST",
+      "headers": {
+        "Content-Type": "application/json",
+        "x-webhook-secret": "YOUR_WEBHOOK_SECRET"
+      },
+      "request_body_schema": {
+        "type": "object",
+        "properties": {
+          "content": {
+            "type": "string",
+            "description": "The exact text of the expert's latest answer."
+          }
+        },
+        "required": ["content"]
+      }
     }
-  },
-  "required": ["content"]
-}
+  }
+]
 ```
+
+Replace:
+- `YOUR_APP_URL` — your deployed app URL (e.g., `https://evalinterview.vercel.app`)
+- `INTERVIEW_ID` — the interview UUID from your database
+- `YOUR_WEBHOOK_SECRET` — the same secret set in `.env` as `ELEVENLABS_WEBHOOK_SECRET`
 
 ### Expected Response
 
