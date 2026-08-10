@@ -167,3 +167,11 @@ Multi-expert interviewing is a future extension, not MVP.
 - No secrets committed; `.env.example` updated if env vars changed.
 - `task.md` checkboxes updated and included in the relevant commit.
 - Core invariants above still hold.
+
+## After Finishing a Phase
+
+- **Kill every background process you started.** No dev servers (`next dev`),
+  no HTTP servers, no watchers, no tunnels left running. Verify with
+  `lsof -iTCP -sTCP:LISTEN -P | grep -E 'node|next|python'` and confirm clean.
+- Close any browser previews opened during the phase.
+- All tests green, work committed in small chunks, `task.md` up to date.
