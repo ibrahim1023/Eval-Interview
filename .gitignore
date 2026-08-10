@@ -1,0 +1,31 @@
+EvalInterview-product-spec.md
+
+# Environment / secrets
+.env
+.env.local
+.env.*.local
+.env.production
+.env.development
+*.pem
+
+# Dependencies / build outputs
+node_modules
+.pnpm-store
+.next
+out
+dist
+*.tsbuildinfo
+
+# Python runner
+venv/
+.venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+
+# Logs / OS
+*.log
+.DS_Store
+.vercel
