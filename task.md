@@ -18,46 +18,46 @@ Goal: repo runs, DB connects, external APIs are reachable, concrete integration 
 
 ### 0.1 Project scaffold
 
-- [ ] Initialize Next.js 15 project with App Router, TypeScript, Tailwind CSS, ESLint, no `src/` directory.
-- [ ] Install runtime/infra dependencies: `drizzle-orm`, `postgres`, `zod`, `jszip` (or Node built-ins for ZIP).
-- [ ] Install dev dependencies: `drizzle-kit`, `@types/node`, TypeScript config.
-- [ ] Install shadcn/ui base and confirm `components.json` + `lib/utils.ts` exist.
-- [ ] Create `.env.example` with all required and optional variables.
-- [ ] Create a `.gitignore` that excludes `.env*`, `node_modules`, `.next`, `out`, `dist`, `eval-runner/.venv`, Python cache, `.DS_Store`.
-- [ ] Create `package.json` scripts: `dev`, `build`, `start`, `lint`, `typecheck` (`tsc --noEmit`), `db:generate`, `db:migrate`, `db:studio`, `db:push`.
-- [ ] Create `next.config.ts`, `tsconfig.json`, `tailwind.config.ts`, `postcss.config.mjs`.
+- [x] Initialize Next.js 15 project with App Router, TypeScript, Tailwind CSS, ESLint, no `src/` directory.
+- [x] Install runtime/infra dependencies: `drizzle-orm`, `postgres`, `zod`, `jszip` (or Node built-ins for ZIP).
+- [x] Install dev dependencies: `drizzle-kit`, `@types/node`, TypeScript config.
+- [x] Install shadcn/ui base and confirm `components.json` + `lib/utils.ts` exist.
+- [x] Create `.env.example` with all required and optional variables.
+- [x] Create a `.gitignore` that excludes `.env*`, `node_modules`, `.next`, `out`, `dist`, `eval-runner/.venv`, Python cache, `.DS_Store`.
+- [x] Create `package.json` scripts: `dev`, `build`, `start`, `lint`, `typecheck` (`tsc --noEmit`), `db:generate`, `db:migrate`, `db:studio`, `db:push`.
+- [x] Create `next.config.ts`, `tsconfig.json`, `tailwind.config.ts`, `postcss.config.mjs`.
 
 ### 0.2 Drizzle + Supabase setup
 
-- [ ] Add `DATABASE_URL` to `.env.example`.
-- [ ] Create `drizzle.config.ts` reading `DATABASE_URL`.
-- [ ] Create `lib/db/index.ts` — singleton `postgres` client and Drizzle instance.
-- [ ] Create `lib/db/schema.ts` with tables: `interviews`, `messages`, `rules`, `evidence`, `scenarios` (match `docs/data-model.md`).
-- [ ] Run `drizzle-kit generate` to produce `drizzle/0000_initial.sql`.
-- [ ] Run `drizzle-kit migrate` (or `db:push` against dev DB) to apply schema.
-- [ ] Write a tiny integration test (`scripts/check-db.ts`) that inserts + reads one row from each table, then delete the script before the phase commit.
+- [x] Add `DATABASE_URL` to `.env.example`.
+- [x] Create `drizzle.config.ts` reading `DATABASE_URL`.
+- [x] Create `lib/db/index.ts` — singleton `postgres` client and Drizzle instance.
+- [x] Create `lib/db/schema.ts` with tables: `interviews`, `messages`, `rules`, `evidence`, `scenarios` (match `docs/data-model.md`).
+- [x] Run `drizzle-kit generate` to produce `drizzle/0000_initial.sql`.
+- [ ] Run `drizzle-kit migrate` (or `db:push` against dev DB) to apply schema. *(blocked on `DATABASE_URL`)*
+- [ ] Write a tiny integration test (`scripts/check-db.ts`) that inserts + reads one row from each table, then delete the script before the phase commit. *(blocked on `DATABASE_URL`)*
 
 ### 0.3 Python eval-runner skeleton
 
-- [ ] Create `eval-runner/pyproject.toml` with package metadata and deps: `pyyaml`, `requests`, `click`.
-- [ ] Create `eval-runner/evalinterview/__init__.py`, `cli.py`, `loader.py`, `runner.py`, `graders.py`.
-- [ ] Add `evalinterview run --help` smoke test to CI or a local script.
-- [ ] Add `.gitignore` / venv instructions in `eval-runner/README.md`.
+- [x] Create `eval-runner/pyproject.toml` with package metadata and deps: `pyyaml`, `requests`, `click`.
+- [x] Create `eval-runner/evalinterview/__init__.py`, `cli.py`, `loader.py`, `runner.py`, `graders.py`.
+- [x] Add `evalinterview run --help` smoke test to CI or a local script.
+- [x] Add `.gitignore` / venv instructions in `eval-runner/README.md`.
 
 ### 0.4 External API verification (temporary scripts, delete before phase commit)
 
-- [ ] Create `scripts/verify-hyperfusion.ts` to call the chat/completions endpoint with the user's API key and confirm:
+- [x] Create `scripts/verify-hyperfusion.ts` to call the chat/completions endpoint with the user's API key and confirm:
   - base URL,
   - model names supported,
   - whether `response_format: { type: "json_object" }` works,
   - whether function/tool calling is supported.
-- [ ] Create `scripts/verify-contextdev.ts` to call source registration / retrieval endpoints with the user's base URL + API key and document the response shape.
-- [ ] Create `scripts/verify-elevenlabs.ts` to create/list a Conversational AI agent and understand how transcript/callback events are delivered.
-- [ ] Write findings into a temporary `docs/api-notes.md` (can be removed before launch).
+- [x] Create `scripts/verify-contextdev.ts` to call source registration / retrieval endpoints with the user's base URL + API key and document the response shape.
+- [x] Create `scripts/verify-elevenlabs.ts` to create/list a Conversational AI agent and understand how transcript/callback events are delivered.
+- [x] Write findings into a temporary `docs/api-notes.md` (can be removed before launch).
 
 ### 0.5 Phase 0 commit
 
-- [ ] Run `npm run lint` and `npx tsc --noEmit` and fix errors.
+- [x] Run `npm run lint` and `npx tsc --noEmit` and fix errors.
 - [ ] Commit: "chore: scaffold Next.js, Drizzle, and eval-runner skeleton".
 
 ---
