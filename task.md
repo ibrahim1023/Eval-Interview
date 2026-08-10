@@ -58,7 +58,7 @@ Goal: repo runs, DB connects, external APIs are reachable, concrete integration 
 ### 0.5 Phase 0 commit
 
 - [x] Run `npm run lint` and `npx tsc --noEmit` and fix errors.
-- [ ] Commit: "chore: scaffold Next.js, Drizzle, and eval-runner skeleton".
+- [x] Commit: "chore: scaffold Next.js, Drizzle, and eval-runner skeleton".
 
 ---
 
