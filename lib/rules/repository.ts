@@ -36,6 +36,19 @@ export function setRuleStatus(id: string, status: RuleStatus): Promise<RuleRow[]
     .returning();
 }
 
+export async function attachContextSource(id: string, source: string): Promise<void> {
+  const rows = await db
+    .select({ contextSources: rules.contextSources })
+    .from(rules)
+    .where(eq(rules.id, id));
+  const current = rows[0]?.contextSources ?? [];
+  if (current.includes(source)) return;
+  await db
+    .update(rules)
+    .set({ contextSources: [...current, source], updatedAt: new Date() })
+    .where(eq(rules.id, id));
+}
+
 export function updateRule(
   id: string,
   patch: Partial<{
