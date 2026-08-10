@@ -119,6 +119,17 @@ evalinterview run ./generated-evals
 - Keep the UI to the four spec'd screens: Landing, New Interview, Interview, Results.
 - Compact code; follow existing file patterns; no speculative abstractions.
 
+## Anti-Slop Rules (avoid AI-generated code smell)
+
+- **No comments that restate the code.** If the code says `const user = getUser()`, do not add `// Get the user`.
+- **No dead code.** Delete unused imports, variables, functions, and commented-out blocks before committing.
+- **No over-abstraction.** Do not create a helper function, interface, or class for something used once. Wait for the second use case.
+- **No excessive error handling.** Handle errors at the right boundary (route handler, orchestrator), not on every line. Let unexpected errors bubble up and crash in development.
+- **No generic boilerplate.** Do not add JSDoc/TSDoc to every function, or write `if (!x) throw new Error("x is required")` for every parameter when TypeScript already enforces it.
+- **No speculative features.** Do not add options, hooks, or configuration "just in case." Build only what the spec and task list require.
+- **Match the codebase style.** If existing files use early returns, single quotes, or a particular naming pattern, follow it. Do not introduce new patterns without a reason.
+- **Write like a human.** Code should read as if a thoughtful engineer wrote it, not as if an LLM filled in a template. When in doubt, write less code.
+
 ## Explicit Non-Goals (do not build)
 
 Authentication (unless needed), teams/orgs/RBAC, billing, SSO, agent observability,
