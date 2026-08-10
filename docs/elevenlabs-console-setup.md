@@ -42,32 +42,49 @@ en
 Add one webhook tool in the agent's **Tools** section. Paste this exact JSON:
 
 ```json
-[
-  {
-    "type": "webhook",
-    "name": "submit_expert_turn",
-    "description": "Submit the expert's latest answer and receive the next interview question from the EvalInterview engine.",
-    "response_timeout_secs": 20,
-    "api_schema": {
-      "url": "https://YOUR_APP_URL/api/interviews/INTERVIEW_ID/turns",
-      "method": "POST",
-      "headers": {
-        "Content-Type": "application/json",
-        "x-webhook-secret": "YOUR_WEBHOOK_SECRET"
+{
+  "type": "webhook",
+  "name": "submit_expert_turn",
+  "description": "Submit the expert's latest answer and receive the next interview question from the EvalInterview engine.",
+  "expects_response": true,
+  "response_timeout_secs": 20,
+  "parameters": [
+    {
+      "name": "content",
+      "type": "string",
+      "description": "The exact text of the expert's latest answer.",
+      "required": true
+    }
+  ],
+  "dynamic_variables": {
+    "dynamic_variable_placeholders": {}
+  },
+  "assignments": [],
+  "interruption_mode": "allow",
+  "pre_tool_speech": "auto",
+  "tool_call_sound": null,
+  "tool_call_sound_behavior": "auto",
+  "execution_mode": "immediate",
+  "response_mocks": [],
+  "api_schema": {
+    "url": "https://YOUR_APP_URL/api/interviews/INTERVIEW_ID/turns",
+    "method": "POST",
+    "headers": {
+      "Content-Type": "application/json",
+      "x-webhook-secret": "YOUR_WEBHOOK_SECRET"
+    },
+    "request_body_schema": {
+      "type": "object",
+      "properties": {
+        "content": {
+          "type": "string",
+          "description": "The exact text of the expert's latest answer."
+        }
       },
-      "request_body_schema": {
-        "type": "object",
-        "properties": {
-          "content": {
-            "type": "string",
-            "description": "The exact text of the expert's latest answer."
-          }
-        },
-        "required": ["content"]
-      }
+      "required": ["content"]
     }
   }
-]
+}
 ```
 
 Replace:
