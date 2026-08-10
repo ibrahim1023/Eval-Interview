@@ -44,12 +44,26 @@ export async function registerSource(input: {
   return { pageCount };
 }
 
+// plainto_tsquery ANDs every term, which is too strict for rule-shaped
+// queries. OR the significant terms and let ts_rank order by relevance.
+function toOrQuery(query: string): string {
+  const terms = query
+    .toLowerCase()
+    .replace(/[^a-z0-9\s]/g, " ")
+    .split(/\s+/)
+    .filter((w) => w.length > 2);
+  return [...new Set(terms)].join(" | ");
+}
+
 export async function retrieve(input: {
   interviewId: string;
   query: string;
   limit?: number;
 }): Promise<EvidenceChunk[]> {
   const limit = input.limit ?? 6;
+  const orQuery = toOrQuery(input.query);
+  if (!orQuery) return [];
+
   const rows = await db.execute<{
     url: string;
     title: string;
@@ -62,12 +76,12 @@ export async function retrieve(input: {
       content,
       ts_rank(
         to_tsvector('english', title || ' ' || content),
-        plainto_tsquery('english', ${input.query})
+        to_tsquery('english', ${orQuery})
       ) as score
     from ${sourceChunks}
     where interview_id = ${input.interviewId}
       and to_tsvector('english', title || ' ' || content)
-          @@ plainto_tsquery('english', ${input.query})
+          @@ to_tsquery('english', ${orQuery})
     order by score desc
     limit ${limit}
   `);
