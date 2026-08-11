@@ -2,7 +2,7 @@ import { sql } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { sourceChunks } from "@/lib/db/schema";
 import { fetchSitemapUrls, scrapeMarkdown } from "./api";
-import { extractTopics, pickRelevantUrls } from "./topics";
+import { extractTopics, pickRelevantUrls, searchTermFromUrl } from "./topics";
 
 export const MAX_SOURCE_PAGES = 25;
 export const MAX_CHUNK_CHARS = 6000;
@@ -20,8 +20,10 @@ export async function registerSource(input: {
   source: { url: string };
 }): Promise<{ pageCount: number }> {
   const domain = new URL(input.source.url).hostname;
-  const urls = await fetchSitemapUrls(domain);
-  const picked = pickRelevantUrls(urls, input.source.url, MAX_SOURCE_PAGES);
+  // Large doc sites truncate the sitemap; a search term keeps the scrape relevant.
+  const search = searchTermFromUrl(input.source.url);
+  const urls = await fetchSitemapUrls(domain, 200, search ?? undefined);
+  const picked = pickRelevantUrls(urls, input.source.url, MAX_SOURCE_PAGES, search !== null);
 
   let pageCount = 0;
   for (let i = 0; i < picked.length; i += SCRAPE_CONCURRENCY) {

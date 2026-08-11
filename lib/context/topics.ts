@@ -33,12 +33,34 @@ export function extractTopics(urls: string[]): string[] {
 }
 
 /**
+ * Derive a sitemap search term from the source URL's last path segment.
+ * "https://docs.stripe.com/refunds" → "refunds"; root URLs return null.
+ */
+export function searchTermFromUrl(sourceUrl: string): string | null {
+  try {
+    const segments = new URL(sourceUrl).pathname.split("/").filter(Boolean);
+    const last = segments[segments.length - 1];
+    if (!last) return null;
+    const term = last.replace(/\.[a-z0-9]+$/i, "").replace(/[-_]+/g, " ").trim();
+    return term || null;
+  } catch {
+    return null;
+  }
+}
+
+/**
  * Pick which sitemap URLs to scrape. Always includes the user-supplied source
  * URL first, then prefers URLs under the source path, skipping subtrees in a
  * different language than the source (e.g. /lang/fr/, /de/...). Capped for
- * credit budget.
+ * credit budget. When the sitemap was already filtered by a search term
+ * (prescreened), every URL is considered relevant.
  */
-export function pickRelevantUrls(urls: string[], sourceUrl: string, max: number): string[] {
+export function pickRelevantUrls(
+  urls: string[],
+  sourceUrl: string,
+  max: number,
+  prescreened = false,
+): string[] {
   const source = sourceUrl.replace(/\/$/, "");
   let basePath = "/";
   try {
@@ -64,7 +86,7 @@ export function pickRelevantUrls(urls: string[], sourceUrl: string, max: number)
     }
   });
 
-  const pool = (underBase.length > 0 ? underBase : unique).filter((u) => {
+  const pool = (prescreened ? unique : underBase.length > 0 ? underBase : unique).filter((u) => {
     try {
       const lang = langSegment(new URL(u).pathname);
       return !lang || lang === sourceLang;

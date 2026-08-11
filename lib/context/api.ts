@@ -29,9 +29,14 @@ async function get<T>(path: string): Promise<T> {
   return res.json() as Promise<T>;
 }
 
-export async function fetchSitemapUrls(domain: string, maxLinks = 200): Promise<string[]> {
+export async function fetchSitemapUrls(
+  domain: string,
+  maxLinks = 200,
+  search?: string,
+): Promise<string[]> {
+  const searchParam = search ? `&search=${encodeURIComponent(search)}` : "";
   const data = await get<{ urls: string[] }>(
-    `/web/scrape/sitemap?domain=${encodeURIComponent(domain)}&maxLinks=${maxLinks}`,
+    `/web/scrape/sitemap?domain=${encodeURIComponent(domain)}&maxLinks=${maxLinks}${searchParam}`,
   );
   return data.urls ?? [];
 }

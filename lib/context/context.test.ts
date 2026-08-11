@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { ContextApiError, fetchSitemapUrls, scrapeMarkdown } from "./api";
-import { extractTopics, pickRelevantUrls } from "./topics";
+import { extractTopics, pickRelevantUrls, searchTermFromUrl } from "./topics";
 
 describe("context api", () => {
   beforeEach(() => {
@@ -25,6 +25,16 @@ describe("context api", () => {
 
     const calledUrl = fetchMock.mock.calls[0][0] as string;
     expect(calledUrl).toContain("/web/scrape/sitemap?domain=a.com");
+  });
+
+  it("passes the search term to the sitemap endpoint when provided", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(JSON.stringify({ success: true, urls: [] }), { status: 200 }),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    await fetchSitemapUrls("docs.stripe.com", 200, "refunds");
+    expect(fetchMock.mock.calls[0][0] as string).toContain("&search=refunds");
   });
 
   it("passes an abort signal so requests cannot hang forever", async () => {
@@ -157,5 +167,28 @@ describe("pickRelevantUrls", () => {
       "https://docs.example.com/fr",
       "https://docs.example.com/fr/setup",
     ]);
+  });
+
+  it("treats all urls as relevant when the sitemap was prescreened by search", () => {
+    const urls = [
+      "https://docs.stripe.com/refunds",
+      "https://docs.stripe.com/radar/refund-abuse",
+      "https://docs.stripe.com/terminal/features/refunds",
+    ];
+    expect(pickRelevantUrls(urls, "https://docs.stripe.com/refunds", 10, true)).toEqual(urls);
+  });
+});
+
+describe("searchTermFromUrl", () => {
+  it("uses the last path segment with separators as spaces", () => {
+    expect(searchTermFromUrl("https://docs.stripe.com/refunds")).toBe("refunds");
+    expect(searchTermFromUrl("https://docs.stripe.com/agentic-commerce/for-sellers/refunds-and-disputes")).toBe(
+      "refunds and disputes",
+    );
+  });
+
+  it("returns null for root urls and invalid input", () => {
+    expect(searchTermFromUrl("https://12factor.net")).toBeNull();
+    expect(searchTermFromUrl("not a url")).toBeNull();
   });
 });
