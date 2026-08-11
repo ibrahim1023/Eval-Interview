@@ -60,21 +60,9 @@ pip install -e .
 evalinterview run ./generated-evals
 ```
 
-## External Setup (One-Time)
-
-Do not use the ElevenLabs console JSON editor to create the webhook tool or
-agent; its internal schema rejects this shape. Use the provided scripts instead:
-
-```bash
-# Create the submit_expert_turn webhook tool
-npx tsx scripts/create-elevenlabs-tool.ts
-
-# Create the shared eval-builder agent and attach the tool
-ELEVENLABS_TOOL_ID=<tool-id> npx tsx scripts/create-elevenlabs-agent.ts
-```
-
-Save the returned agent ID and configure it wherever your environment stores
-`ELEVENLABS_AGENT_ID`. See `docs/elevenlabs-console-setup.md` for details.
+One-time ElevenLabs tool/agent setup scripts live in `scripts/` and are
+documented in `docs/elevenlabs-console-setup.md`. Do not use the ElevenLabs
+console JSON editor for this shape; its internal schema is unreliable.
 
 ## Core Invariants (do not violate)
 
