@@ -54,6 +54,7 @@ function makeFakeDeps(overrides: Partial<{
       question: "Should both be required?",
       rationale: "resolve partial",
       strategy: "conflict" as const,
+      abandonRuleIds: [] as string[],
     })),
   };
 
@@ -159,6 +160,19 @@ describe("processTurn", () => {
     const { deps, intelligence } = makeFakeDeps({ extracted: [] });
     await processTurn(deps, "int_1", "Hello, happy to be here.");
     expect(intelligence.classifyEvidence).not.toHaveBeenCalled();
+  });
+
+  it("marks rules unresolved when the follow-up abandons them", async () => {
+    const { deps, rules, intelligence } = makeFakeDeps();
+    intelligence.generateFollowUp = vi.fn(async () => ({
+      question: "Let's talk about something else.",
+      rationale: "expert declined twice",
+      strategy: "gap" as const,
+      abandonRuleIds: ["rule_0", "rule_bogus"],
+    }));
+
+    await processTurn(deps, "int_1", "I'm not sure.");
+    expect(rules[0].status).toBe("unresolved");
   });
 
   it("returns the fallback question and preserves state when the loop throws", async () => {

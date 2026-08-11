@@ -19,6 +19,9 @@ export const followUpSchema = z.object({
   question: z.string(),
   rationale: z.string(),
   strategy: z.enum(["probe", "conflict", "gap", "contrastive", "boundary", "wrap_up"]),
+  // IDs of behavior-model rules the expert has declined or failed to resolve;
+  // the orchestrator marks them unresolved instead of asking again.
+  abandonRuleIds: z.array(z.string()).default([]),
 });
 export type FollowUp = z.infer<typeof followUpSchema>;
 

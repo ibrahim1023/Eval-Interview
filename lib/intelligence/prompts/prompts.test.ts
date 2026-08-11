@@ -51,7 +51,7 @@ describe("prompt builders", () => {
       coverageGaps: ["authorization changes"],
     });
 
-    expect(user).toContain("[provisional] migration");
+    expect(user).toContain("[provisional] (r1) migration");
     expect(user).toContain("PARTIAL: migration (adds backup)");
     expect(user).toContain("authorization changes");
   });

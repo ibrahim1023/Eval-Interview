@@ -186,6 +186,11 @@ async function runLoop(
     coverageGaps,
   });
 
+  const knownRuleIds = new Set(allRules.map((r) => r.id));
+  for (const id of followUp.abandonRuleIds) {
+    if (knownRuleIds.has(id)) await deps.rules.setStatus(id, "unresolved");
+  }
+
   await deps.store.addMessage({
     interviewId,
     speaker: "interviewer",

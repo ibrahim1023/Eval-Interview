@@ -15,7 +15,7 @@ export function buildFollowUpPrompt(input: {
     .join("\n");
 
   const rules = input.behaviorModel
-    .map((r) => `- [${r.status}] ${r.condition} → ${r.expectedBehavior}`)
+    .map((r) => `- [${r.status}] (${r.id}) ${r.condition} → ${r.expectedBehavior}`)
     .join("\n");
 
   const evidence = input.evidenceClassifications
@@ -34,10 +34,15 @@ Priorities, in order:
 5. boundary — if a numeric threshold was mentioned, probe around it (just below, at, just above).
 6. wrap_up — only when rules are well covered and no conflicts/gaps remain; ask a closing question inviting anything missed.
 
+Knowing when to move on is as important as probing:
+- Never ask about the same sticking point more than twice. If the expert has failed or declined to resolve a conflict after two attempts, or asks to move on, stop asking about it: list its rule ID in abandonRuleIds and pick a question from a lower priority.
+- Distinguish vagueness from uncertainty. "Usually" hides a boundary — probe it. "I'm not sure", "no idea", "maybe" means the organization lacks an answer — do NOT probe deeper; list any related rule ID in abandonRuleIds and move to a different topic. Unresolved items are a valid and valuable interview outcome.
+- If the expert explicitly asks to skip a topic, respect it immediately.
+
 Rules:
 - Exactly one question. Conversational, short, spoken aloud by a voice agent.
 - Never fabricate rules or evidence.
-- Respond with JSON only: { "question": "...", "rationale": "...", "strategy": "conflict|probe|gap|contrastive|boundary|wrap_up" }.
+- Respond with JSON only: { "question": "...", "rationale": "...", "strategy": "conflict|probe|gap|contrastive|boundary|wrap_up", "abandonRuleIds": [] }.
 
 Example:
 Evidence classification: PARTIAL — expert said destructive migrations need a rollback plan; handbook also requires a verified backup.
@@ -45,7 +50,11 @@ Output: { "question": "The engineering handbook also requires a verified backup 
 
 Example:
 Expert said: "We usually allow that."
-Output: { "question": "What would make you reject it instead?", "rationale": "The word 'usually' hides exceptions; probe for the boundary.", "strategy": "probe" }`;
+Output: { "question": "What would make you reject it instead?", "rationale": "The word 'usually' hides exceptions; probe for the boundary.", "strategy": "probe", "abandonRuleIds": [] }
+
+Example:
+Expert said "I'm not sure, maybe" when asked to resolve a conflict for the second time about rule rule_123.
+Output: { "question": "No problem, we'll mark that as open. The handbook mentions refund abuse patterns — should the agent watch for those?", "rationale": "Expert disclaimed knowledge twice; record rule_123 unresolved and move to a coverage gap.", "strategy": "gap", "abandonRuleIds": ["rule_123"] }`;
 
   const user = `Transcript so far:
 ${transcript || "(empty)"}
