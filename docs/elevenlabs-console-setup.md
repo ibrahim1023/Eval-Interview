@@ -101,6 +101,21 @@ This creates the `eval-builder` agent, attaches the tool, and sets the system pr
 ELEVENLABS_AGENT_ID=<agent-id>
 ```
 
+### 5.4 Verify and repair (drift check)
+
+If the voice agent improvises its own questions instead of speaking
+engine-generated ones, the tool is probably detached from the agent (observed
+2026-08-11: PATCHing the prompt without `tool_ids` silently detaches tools).
+Verify:
+
+```bash
+curl -s "https://api.elevenlabs.io/v1/convai/agents/$ELEVENLABS_AGENT_ID" \
+  -H "xi-api-key: $ELEVENLABS_API_KEY" | jq '.conversation_config.agent.prompt.tool_ids'
+```
+
+It must contain the `submit_expert_turn` tool ID. To re-attach, PATCH the agent
+with the full existing prompt object plus `tool_ids: ["<tool-id>"]`.
+
 ### Expected Response
 
 The webhook must return JSON with a `question` field. The agent will speak this
