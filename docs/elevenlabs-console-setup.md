@@ -1,8 +1,9 @@
 # ElevenLabs Console Setup
 
-Manual setup for the EvalInterview interviewer agent in the ElevenLabs
-Conversational AI console. Create one agent per interview session, or create a
-single reusable agent and pass the interview ID in the webhook URL.
+Setup for the EvalInterview interviewer agent in ElevenLabs Conversational AI.
+The recommended path is to create the tool and agent via the ElevenLabs API using
+the included scripts; the console JSON editor is currently unreliable for this
+shape of webhook tool.
 
 ---
 
@@ -67,62 +68,38 @@ Hi! I'm going to ask you about the agent you're defining — what it should do, 
 en
 ```
 
-## 5. Webhook Tool
+## 5. Create the Tool and Agent via API
 
-Add one webhook tool in the agent's **Tools** section. Paste this exact JSON:
+The console's JSON editor rejects this tool shape, so use the provided scripts.
 
-```json
-{
-  "type": "webhook",
-  "name": "submit_expert_turn",
-  "description": "Submit the expert's latest answer and receive the next interview question from the EvalInterview engine.",
-  "api_schema": {
-    "url": "https://YOUR_APP_URL/api/interviews/INTERVIEW_ID/turns",
-    "method": "POST",
-    "path_params_schema": [],
-    "query_params_schema": [],
-    "request_body_schema": {
-      "type": "object",
-      "properties": {
-        "content": {
-          "type": "string",
-          "description": "The expert's complete response as plain spoken text, preserving their meaning exactly, e.g. 'Block destructive migrations unless a rollback plan exists.'"
-        }
-      },
-      "required": ["content"]
-    },
-    "request_headers": [
-      {
-        "name": "Content-Type",
-        "value": "application/json"
-      },
-      {
-        "name": "x-webhook-secret",
-        "value": "YOUR_WEBHOOK_SECRET"
-      }
-    ],
-    "content_type": "application/json",
-    "auth_connection": null
-  },
-  "response_timeout_secs": 20,
-  "dynamic_variables": {
-    "dynamic_variable_placeholders": {}
-  },
-  "assignments": [],
-  "interruption_mode": "allow",
-  "pre_tool_speech": "auto",
-  "tool_call_sound": null,
-  "tool_call_sound_behavior": "auto",
-  "execution_mode": "immediate",
-  "tool_error_handling_mode": "auto",
-  "response_mocks": []
-}
+### 5.1 Prerequisites
+
+Your `.env` must contain:
+
+```bash
+ELEVENLABS_API_KEY=<key with convai_write permission>
+ELEVENLABS_WEBHOOK_SECRET=<a strong random secret>
 ```
 
-Replace:
-- `YOUR_APP_URL` — `https://evalinterview.vercel.app`
-- `INTERVIEW_ID` — the interview UUID from your database
-- `YOUR_WEBHOOK_SECRET` — the same secret set in `.env` as `ELEVENLABS_WEBHOOK_SECRET`
+### 5.2 Create the webhook tool
+
+```bash
+npx tsx scripts/create-elevenlabs-tool.ts
+```
+
+This creates `submit_expert_turn` with the dynamic URL `https://evalinterview.vercel.app/api/interviews/{interview_id}/turns` and the `x-webhook-secret` header. Save the returned `tool_...` ID.
+
+### 5.3 Create the agent
+
+```bash
+ELEVENLABS_TOOL_ID=<tool-id> npx tsx scripts/create-elevenlabs-agent.ts
+```
+
+This creates the `eval-builder` agent, attaches the tool, and sets the system prompt and first message. Save the returned `agent_...` ID and add it to `.env`:
+
+```bash
+ELEVENLABS_AGENT_ID=<agent-id>
+```
 
 ### Expected Response
 

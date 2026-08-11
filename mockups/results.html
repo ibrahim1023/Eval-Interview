@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Results — EvalInterview</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: #fafafa;
+    color: #171717;
+    -webkit-font-smoothing: antialiased;
+  }
+  nav {
+    padding: 14px 24px;
+    background: #fff;
+    border-bottom: 1px solid #e5e5e5;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .logo { font-weight: 650; font-size: 15px; letter-spacing: -0.02em; }
+  main { max-width: 860px; margin: 0 auto; padding: 40px 24px 96px; }
+  h1 { font-size: 24px; font-weight: 650; letter-spacing: -0.02em; }
+  .sub { margin-top: 6px; font-size: 14px; color: #525252; }
+
+  .summary {
+    display: flex;
+    gap: 12px;
+    margin: 24px 0 36px;
+  }
+  .summary .stat {
+    flex: 1;
+    background: #fff;
+    border: 1px solid #e5e5e5;
+    border-radius: 12px;
+    padding: 16px;
+  }
+  .summary .n { font-size: 26px; font-weight: 650; }
+  .summary .l { font-size: 12px; color: #737373; margin-top: 2px; }
+  .summary .ok .n { color: #16a34a; }
+  .summary .warn .n { color: #d97706; }
+  .summary .unres .n { color: #6d28d9; }
+
+  .actions { display: flex; gap: 10px; margin-bottom: 40px; }
+  .btn-primary {
+    background: #171717; color: #fff; border: none;
+    padding: 11px 20px; border-radius: 8px; font-size: 14px; font-weight: 500; cursor: pointer;
+  }
+  .btn-secondary {
+    background: #fff; color: #171717; border: 1px solid #e5e5e5;
+    padding: 11px 20px; border-radius: 8px; font-size: 14px; font-weight: 500; cursor: pointer;
+  }
+
+  h2 {
+    font-size: 12px;
+    font-weight: 650;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: #737373;
+    margin: 36px 0 14px;
+  }
+
+  .rule {
+    background: #fff;
+    border: 1px solid #e5e5e5;
+    border-radius: 12px;
+    padding: 18px 20px;
+    margin-bottom: 12px;
+  }
+  .rule-head { display: flex; align-items: center; justify-content: space-between; }
+  .rule-title { font-size: 15px; font-weight: 600; }
+  .rule-body { margin-top: 8px; font-size: 13.5px; color: #404040; line-height: 1.6; }
+  .rule-req { margin-top: 10px; font-size: 13.5px; color: #404040; }
+  .rule-req li { margin-left: 18px; }
+  .rule-req .check { color: #16a34a; font-weight: 700; margin-right: 4px; }
+  .provenance {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px dashed #e5e5e5;
+    font-size: 12px;
+    color: #737373;
+    font-family: ui-monospace, monospace;
+  }
+  .rule-actions { display: flex; gap: 8px; }
+  .mini {
+    font-size: 12.5px;
+    font-weight: 500;
+    padding: 6px 12px;
+    border-radius: 7px;
+    border: 1px solid #e5e5e5;
+    background: #fff;
+    cursor: pointer;
+  }
+  .mini.confirm { background: #171717; color: #fff; border-color: #171717; }
+
+  .banner {
+    background: #fef3c7;
+    border: 1px solid #fde68a;
+    border-radius: 12px;
+    padding: 16px 20px;
+    font-size: 13.5px;
+    color: #92400e;
+    line-height: 1.55;
+    margin-bottom: 12px;
+  }
+  .banner.purple {
+    background: #f5f3ff;
+    border-color: #ddd6fe;
+    color: #5b21b6;
+  }
+
+  .scenarios { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+  .scn {
+    background: #fff;
+    border: 1px solid #e5e5e5;
+    border-radius: 12px;
+    padding: 16px;
+    text-align: center;
+  }
+  .scn .n { font-size: 22px; font-weight: 650; }
+  .scn .l { font-size: 12px; color: #737373; margin-top: 2px; text-transform: capitalize; }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="logo">EvalInterview</div>
+  <div style="font-size:13px;color:#737373">Code Review Agent &middot; interview complete</div>
+</nav>
+
+<main>
+  <h1>Behavior specification</h1>
+  <p class="sub">Review and confirm the rules extracted from the interview before generating the eval suite.</p>
+
+  <div class="summary">
+    <div class="stat ok"><div class="n">8</div><div class="l">confirmed rules</div></div>
+    <div class="stat warn"><div class="n">1</div><div class="l">policy conflict</div></div>
+    <div class="stat unres"><div class="n">3</div><div class="l">unresolved questions</div></div>
+    <div class="stat"><div class="n">16</div><div class="l">scenarios ready</div></div>
+  </div>
+
+  <div class="actions">
+    <button class="btn-primary">Generate eval suite</button>
+    <button class="btn-secondary">Export ZIP</button>
+  </div>
+
+  <h2>Confirmed rules</h2>
+
+  <div class="rule">
+    <div class="rule-head">
+      <div class="rule-title">Migration safety</div>
+      <div class="rule-actions">
+        <button class="mini">Edit</button>
+        <button class="mini confirm">Confirm</button>
+      </div>
+    </div>
+    <div class="rule-body">Destructive database migrations require:</div>
+    <ul class="rule-req">
+      <li><span class="check">&#10003;</span> rollback plan</li>
+      <li><span class="check">&#10003;</span> verified backup</li>
+    </ul>
+    <div class="rule-body" style="margin-top:6px">Otherwise: <strong>block approval</strong></div>
+    <div class="provenance">evidence: turn_12, turn_18 &middot; engineering-handbook/migrations</div>
+  </div>
+
+  <div class="rule">
+    <div class="rule-head">
+      <div class="rule-title">Test coverage</div>
+      <div class="rule-actions">
+        <button class="mini">Edit</button>
+        <button class="mini confirm">Confirm</button>
+      </div>
+    </div>
+    <div class="rule-body">Pull requests touching core business logic must include or update tests.</div>
+    <div class="provenance">evidence: turn_07 &middot; engineering-handbook/testing</div>
+  </div>
+
+  <h2>Conflicts</h2>
+  <div class="banner">
+    <strong>Dependency upgrades.</strong> Expert said major upgrades need review; the handbook requires review for
+    <em>all</em> upgrades. Resolve before generating boundary scenarios for this rule.
+  </div>
+
+  <h2>Unresolved</h2>
+  <div class="banner purple">
+    <strong>Schema compatibility.</strong> The organization has no clear answer on whether schema-incompatible
+    changes auto-block or escalate. Recorded as UNRESOLVED — no eval scenarios will be generated for this rule.
+  </div>
+
+  <h2>Generated scenarios</h2>
+  <div class="scenarios">
+    <div class="scn"><div class="n">5</div><div class="l">normal</div></div>
+    <div class="scn"><div class="n">5</div><div class="l">contrastive</div></div>
+    <div class="scn"><div class="n">3</div><div class="l">boundary</div></div>
+    <div class="scn"><div class="n">3</div><div class="l">adversarial</div></div>
+  </div>
+</main>
+
+</body>
+</html>

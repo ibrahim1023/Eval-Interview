@@ -144,9 +144,10 @@ Goal: replace the text box with the real voice interview. Orchestrator unchanged
 ### 2.1 Voice session client
 
 - [x] Create `lib/elevenlabs/agent-config.ts` with a minimal static system prompt and webhook tool definition.
-- [x] Create `lib/elevenlabs/client.ts` with `createInterviewAgent`, `startConversation`, and `deleteAgent`.
+- [x] Create `lib/elevenlabs/client.ts` with `startConversation` and `deleteAgent`.
 - [x] Add `ELEVENLABS_WEBHOOK_SECRET` handling in the webhook tool headers.
-- [ ] Implement `startSession` to create an ElevenLabs Conversational AI conversation and return client token/conversation ID.
+- [x] Implement `startConversation` to fetch a signed ElevenLabs Conversational AI URL using the shared `ELEVENLABS_AGENT_ID`.
+- [ ] Create an API route that returns the signed URL for an interview and wire the interview UI to start the voice session.
 - [ ] Implement transcript ingestion path (webhook or client callback → `POST /api/interviews/[id]/turns`).
 - [ ] Unit tests for `buildSystemPrompt` and the client with mocked fetch.
 
