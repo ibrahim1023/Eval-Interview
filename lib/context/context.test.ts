@@ -139,6 +139,18 @@ describe("pickRelevantUrls", () => {
     ]);
   });
 
+  it("treats underscore locales like pt_br as language prefixes", () => {
+    const urls = [
+      "https://12factor.net/config",
+      "https://12factor.net/pt_br/config",
+      "https://12factor.net/zh_cn/config",
+    ];
+    expect(pickRelevantUrls(urls, "https://12factor.net", 10)).toEqual([
+      "https://12factor.net",
+      "https://12factor.net/config",
+    ]);
+  });
+
   it("keeps the source's own locale when the source is localized", () => {
     const urls = ["https://docs.example.com/en/setup", "https://docs.example.com/fr/setup"];
     expect(pickRelevantUrls(urls, "https://docs.example.com/fr", 10)).toEqual([

@@ -81,7 +81,7 @@ export function pickRelevantUrls(urls: string[], sourceUrl: string, max: number)
 function langSegment(pathname: string): string | null {
   const segments = pathname.split("/").filter(Boolean);
   if (segments[0] === "lang") return segments[1]?.toLowerCase() ?? null;
-  if (segments[0] && /^[a-z]{2}(-[a-z0-9]{2,8})?$/i.test(segments[0])) {
+  if (segments[0] && /^[a-z]{2,3}([-_][a-z0-9]{2,8})?$/i.test(segments[0])) {
     return segments[0].toLowerCase();
   }
   return null;
