@@ -116,6 +116,23 @@ curl -s "https://api.elevenlabs.io/v1/convai/agents/$ELEVENLABS_AGENT_ID" \
 It must contain the `submit_expert_turn` tool ID. To re-attach, PATCH the agent
 with the full existing prompt object plus `tool_ids: ["<tool-id>"]`.
 
+### 5.5 Local development (tunnel)
+
+The webhook tool URL is fixed at creation/PATCH time and must be publicly
+reachable — ElevenLabs' cloud calls it, so `localhost` does not work. For a
+local voice demo:
+
+```bash
+npm run dev
+ngrok http 3000   # note the https://....ngrok-free.dev URL
+```
+
+Then PATCH the tool's `api_schema.url` to
+`<tunnel-url>/api/interviews/{interview_id}/turns` (keep the
+`{interview_id}` placeholder). Free ngrok URLs change on every restart, so
+re-PATCH after each new tunnel. Verify with the drift-check curl in 5.4 plus
+a real turn POST; expect ~7s per turn (see `HYPERFUSION_MODEL`).
+
 ### Expected Response
 
 The webhook must return JSON with a `question` field. The agent will speak this
