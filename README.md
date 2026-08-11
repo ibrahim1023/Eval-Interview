@@ -80,9 +80,11 @@ No microservices, no queues, no separate backend.
 
 ## Status
 
-This repository is under active development. Phase 0 (scaffold) is complete.
-See [`task.md`](./task.md) for the live implementation checklist and
-[`docs/`](./docs/) for architecture, data model, and integration contracts.
+This repository is under active development. Phase 0 (scaffold) and Phase 1
+(core vertical slice with text input) are complete. Phase 2 (real ElevenLabs
+voice integration) is in progress. See [`task.md`](./task.md) for the live
+checklist and [`docs/`](./docs/) for architecture, data model, and integration
+contracts.
 
 ## Setup
 
@@ -90,6 +92,22 @@ See [`task.md`](./task.md) for the live implementation checklist and
 npm install
 cp .env.example .env.local
 # Fill in DATABASE_URL, ELEVENLABS_*, CONTEXT_API_*, HYPERFUSION_*
+```
+
+Create the ElevenLabs tool and shared agent via the provided scripts (the
+console JSON editor is unreliable for this shape):
+
+```bash
+# 1. Create the submit_expert_turn webhook tool
+npx tsx scripts/create-elevenlabs-tool.ts
+
+# 2. Create the eval-builder agent and attach the tool
+ELEVENLABS_TOOL_ID=<tool-id> npx tsx scripts/create-elevenlabs-agent.ts
+```
+
+Save the returned agent ID and add it to `.env` as `ELEVENLABS_AGENT_ID`, then:
+
+```bash
 npm run db:push
 npm run dev
 ```
