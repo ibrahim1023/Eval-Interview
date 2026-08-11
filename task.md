@@ -35,6 +35,29 @@ full phase plan and history; see git history for implementation detail.
 
 ## Known Issues
 
+From live demo runs (2026-08-11). Not yet fixed — captured for triage:
+
+- **Tool timeout vs. turn latency.** Server turns take ~7s warm (longer with a
+  large transcript); through ngrok this sometimes exceeds the webhook tool's
+  `response_timeout_secs` (20). Result: the agent says "Sorry, I missed that"
+  / "I'm not sure I got that" even though the server completed the turn and
+  the message shows in the chat. Queued fix: PATCH the tool to a larger
+  timeout (e.g. 120s).
+- **No turn idempotency.** When a tool call times out, the agent resubmits the
+  same answer and the server processes it twice → duplicate expert messages
+  and repeated questions (visible in DB after demo runs). Queued fix: dedupe
+  identical consecutive expert turns and return the already-computed question.
+- **Question appears in chat before it's spoken.** The UI polls every 2.5s and
+  shows the persisted question while TTS is still generating — feels
+  disjointed.
+- **Crawl blocks interview creation with no progress.** Stripe took ~90s on
+  the "Crawling knowledge source…" button; if the post-crawl redirect fails,
+  the form hangs forever even though the interview was created. Queued fix:
+  return immediately, crawl in background, show progress on the interview
+  screen.
+- **Conversational pacing.** Multi-second silence after each expert answer
+  reads as the agent being stuck. Queued fix option: speak an immediate
+  acknowledgment ("Got it, one moment…") while the loop runs.
 - Near-duplicate rules across turns are not merged yet (resolve in the Phase 3
   review screen or add cheap dedupe).
 
