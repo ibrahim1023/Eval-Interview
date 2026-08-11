@@ -49,6 +49,7 @@ export interface IntelligenceProvider {
     agentDescription: string;
     turn: TranscriptMessage;
     recentTranscript: TranscriptMessage[];
+    existingRules: RuleSummary[];
   }): Promise<{ rules: ProvisionalRule[] }>;
 
   classifyEvidence(input: {

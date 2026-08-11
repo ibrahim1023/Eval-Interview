@@ -175,6 +175,28 @@ describe("processTurn", () => {
     expect(rules[0].status).toBe("unresolved");
   });
 
+  it("replays the same question when an identical answer is resubmitted", async () => {
+    const { deps, messages, intelligence } = makeFakeDeps();
+
+    const first = await processTurn(deps, "int_1", "Block risky deploys.");
+    const second = await processTurn(deps, "int_1", "  block   risky deploys. ");
+
+    expect(second.question).toBe(first.question);
+    expect(intelligence.extractRule).toHaveBeenCalledOnce();
+    expect(messages.filter((m) => m.speaker === "expert")).toHaveLength(1);
+  });
+
+  it("does not create near-duplicate rules across turns", async () => {
+    const { deps, rules, intelligence } = makeFakeDeps();
+
+    await processTurn(deps, "int_1", "Block destructive migrations without rollback.");
+    // The fake extractor always returns the same rule — a near-duplicate of turn 1's.
+    await processTurn(deps, "int_1", "As I said, destructive migrations must be blocked.");
+
+    expect(rules).toHaveLength(1);
+    expect(intelligence.classifyEvidence).toHaveBeenCalledOnce();
+  });
+
   it("returns the fallback question and preserves state when the loop throws", async () => {
     const { deps, intelligence, messages } = makeFakeDeps();
     intelligence.extractRule = vi.fn(async () => {

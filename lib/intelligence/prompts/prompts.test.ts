@@ -12,12 +12,17 @@ describe("prompt builders", () => {
         { turnIndex: 1, speaker: "interviewer", content: "What blocks approval?" },
         { turnIndex: 2, speaker: "expert", content: "Depends on the change." },
       ],
+      existingRules: [
+        { id: "r1", condition: "migration", expectedBehavior: "block", status: "provisional" },
+      ],
     });
 
     expect(user).toContain("Reviews PRs");
     expect(user).toContain("[turn_1] interviewer");
     expect(user).toContain("[turn_2] expert");
     expect(user).toContain("[turn_3] expert: Block migrations without rollback.");
+    expect(user).toContain("do not re-extract");
+    expect(user).toContain("[provisional] migration");
   });
 
   it("classifyEvidence prompt embeds rule fields and numbered chunks", () => {

@@ -39,6 +39,16 @@ export async function setInterviewStatus(
     .returning();
 }
 
+export async function setCrawlStatus(
+  id: string,
+  crawlStatus: "pending" | "ready" | "failed",
+): Promise<void> {
+  await db
+    .update(interviews)
+    .set({ crawlStatus, updatedAt: new Date() })
+    .where(eq(interviews.id, id));
+}
+
 export async function addMessage(input: {
   interviewId: string;
   speaker: "expert" | "interviewer";

@@ -48,7 +48,7 @@ Use this tool after every expert response — answers, questions, clarifications
 
 **How to use:**
 1. Listen to the expert's complete response.
-2. Call submit_expert_turn, passing the expert's words as the content parameter, preserving their meaning exactly.
+2. Immediately say a short, varied acknowledgment ("Got it — one moment.", "Thanks, let me think on that.") so the expert is never left in silence, then call submit_expert_turn in the same turn, passing the expert's words as the content parameter, preserving their meaning exactly.
 3. Speak the returned question aloud, naturally and conversationally.
 
 **Error handling:**

@@ -12,6 +12,9 @@ export const interviews = pgTable(
     status: text("status", { enum: ["active", "review", "complete"] })
       .notNull()
       .default("active"),
+    crawlStatus: text("crawl_status", { enum: ["pending", "ready", "failed"] })
+      .notNull()
+      .default("pending"),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
   },

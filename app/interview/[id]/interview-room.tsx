@@ -36,7 +36,13 @@ const STATUS_CHIP: Record<Rule["status"], string> = {
 
 const MAX_RECONNECT_ATTEMPTS = 3;
 
-function VoiceControls({ interviewId }: { interviewId: string }) {
+function VoiceControls({
+  interviewId,
+  crawlStatus,
+}: {
+  interviewId: string;
+  crawlStatus: "pending" | "ready" | "failed";
+}) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [reconnecting, setReconnecting] = useState(false);
@@ -146,10 +152,18 @@ function VoiceControls({ interviewId }: { interviewId: string }) {
                 : "Ready"}
         </strong>
       </div>
+      {crawlStatus === "pending" && (
+        <span className="text-sm text-neutral-500">Preparing knowledge base…</span>
+      )}
+      {crawlStatus === "failed" && (
+        <span className="text-sm text-amber-600">
+          Knowledge source could not be crawled — the interview will run without it.
+        </span>
+      )}
       {error && <span className="text-sm text-red-600">{error}</span>}
       <button
         onClick={isConnected ? stop : start}
-        disabled={busy || isConnecting}
+        disabled={busy || isConnecting || crawlStatus === "pending"}
         className={`rounded-lg px-4 py-2 text-[13.5px] font-medium text-white ${
           isConnected ? "bg-red-600 hover:bg-red-700" : "bg-neutral-900 hover:bg-neutral-800"
         } disabled:opacity-50`}
@@ -167,11 +181,13 @@ export function InterviewRoom(props: {
   initialMessages: Message[];
   initialRules: Rule[];
   initialEvidence: Evidence[];
+  initialCrawlStatus: "pending" | "ready" | "failed";
 }) {
   const router = useRouter();
   const [messages, setMessages] = useState(props.initialMessages);
   const [rules, setRules] = useState(props.initialRules);
   const [evidence, setEvidence] = useState(props.initialEvidence);
+  const [crawlStatus, setCrawlStatus] = useState(props.initialCrawlStatus);
   const bottomRef = useRef<HTMLDivElement>(null);
 
   const supported = evidence.filter((e) => e.relationship === "supported").length;
@@ -191,6 +207,7 @@ export function InterviewRoom(props: {
       setMessages(data.messages);
       setRules(data.rules);
       setEvidence(data.evidence);
+      setCrawlStatus(data.interview.crawlStatus);
     }, 2500);
     return () => clearInterval(timer);
   }, [props.interviewId]);
@@ -305,7 +322,7 @@ export function InterviewRoom(props: {
 
       <div className="fixed right-[340px] bottom-0 left-0 flex items-center gap-4 border-t border-neutral-200 bg-white px-8 py-4">
         <ConversationProvider>
-          <VoiceControls interviewId={props.interviewId} />
+          <VoiceControls interviewId={props.interviewId} crawlStatus={crawlStatus} />
         </ConversationProvider>
       </div>
     </div>

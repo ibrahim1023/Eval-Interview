@@ -14,11 +14,12 @@ import {
   getInterview,
   listMessages,
   recentMessages,
+  setCrawlStatus,
   setInterviewStatus,
 } from "./store";
 import { processTurn, type OrchestratorDeps } from "./orchestrator";
 
-export { createInterview, getInterview, setInterviewStatus, registerSource };
+export { createInterview, getInterview, setInterviewStatus, setCrawlStatus, registerSource };
 
 function realDeps(): OrchestratorDeps {
   return {

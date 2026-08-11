@@ -27,6 +27,7 @@ export default async function InterviewPage({
       initialMessages={messageRows}
       initialRules={ruleRows}
       initialEvidence={evidenceRows}
+      initialCrawlStatus={interview.crawlStatus}
     />
   );
 }

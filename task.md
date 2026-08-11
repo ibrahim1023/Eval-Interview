@@ -35,31 +35,28 @@ full phase plan and history; see git history for implementation detail.
 
 ## Known Issues
 
-From live demo runs (2026-08-11). Not yet fixed — captured for triage:
+From live demo runs (2026-08-11):
 
-- **Tool timeout vs. turn latency.** Server turns take ~7s warm (longer with a
-  large transcript); through ngrok this sometimes exceeds the webhook tool's
-  `response_timeout_secs` (20). Result: the agent says "Sorry, I missed that"
-  / "I'm not sure I got that" even though the server completed the turn and
-  the message shows in the chat. Queued fix: PATCH the tool to a larger
-  timeout (e.g. 120s).
-- **No turn idempotency.** When a tool call times out, the agent resubmits the
-  same answer and the server processes it twice → duplicate expert messages
-  and repeated questions (visible in DB after demo runs). Queued fix: dedupe
-  identical consecutive expert turns and return the already-computed question.
-- **Question appears in chat before it's spoken.** The UI polls every 2.5s and
-  shows the persisted question while TTS is still generating — feels
-  disjointed.
-- **Crawl blocks interview creation with no progress.** Stripe took ~90s on
-  the "Crawling knowledge source…" button; if the post-crawl redirect fails,
-  the form hangs forever even though the interview was created. Queued fix:
-  return immediately, crawl in background, show progress on the interview
+- ~~Tool timeout vs. turn latency~~ — fixed: tool `response_timeout_secs`
+  raised 20s → 120s on the live ElevenLabs tool.
+- ~~No turn idempotency~~ — fixed: resubmitted identical expert turns replay
+  the already-computed question instead of reprocessing.
+- **Question appears in chat before it's spoken** — by design: the question is
+  persisted when the webhook returns, while TTS is still generating. The
+  transcript leads the voice by a few seconds; no planned change.
+- ~~Crawl blocks interview creation with no progress~~ — fixed: interviews
+  create instantly; the crawl runs via `after()` with `crawl_status` on the
+  interview, and the interview screen shows "Preparing knowledge base…" until
+  ready.
+- ~~Conversational pacing~~ — fixed: the agent prompt now requires a short
+  spoken acknowledgment before each tool call (cloud agent re-PATCHed).
+- ~~Near-duplicate rules not merged~~ — fixed: `extractRule` sees the existing
+  behavior model and the orchestrator drops near-duplicates (word-overlap
+  similarity ≥ 0.7). Finer merging/editing lands with the Phase 3 review
   screen.
-- **Conversational pacing.** Multi-second silence after each expert answer
-  reads as the agent being stuck. Queued fix option: speak an immediate
-  acknowledgment ("Got it, one moment…") while the loop runs.
-- Near-duplicate rules across turns are not merged yet (resolve in the Phase 3
-  review screen or add cheap dedupe).
+- **Interviewer looped on unresolved points** (observed 2026-08-11) — fixed:
+  the strategist must abandon a sticking point after two failed attempts and
+  can mark rules `unresolved` via `abandonRuleIds`.
 
 ## Completion Criteria (Phase 2)
 

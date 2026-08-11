@@ -103,6 +103,10 @@ export async function processTurn(
   }
 }
 
+function normalize(text: string): string {
+  return text.toLowerCase().replace(/\s+/g, " ").trim();
+}
+
 async function runLoop(
   deps: OrchestratorDeps,
   interviewId: string,
@@ -111,6 +115,19 @@ async function runLoop(
   const interview = await deps.store.getInterview(interviewId);
   if (!interview) throw new Error(`Interview not found: ${interviewId}`);
 
+  // The voice agent resubmits a turn when its webhook call times out, but the
+  // server may have already processed it. If this exact answer was already
+  // answered, replay the question instead of double-processing.
+  const tail = await deps.store.recentMessages(interviewId, 2);
+  const [prev, last] = [tail.at(-2), tail.at(-1)];
+  if (
+    last?.speaker === "interviewer" &&
+    prev?.speaker === "expert" &&
+    normalize(prev.content) === normalize(expertContent)
+  ) {
+    return { question: last.content, snapshot: await snapshot(deps, interviewId) };
+  }
+
   const expertTurn = await deps.store.addMessage({
     interviewId,
     speaker: "expert",
@@ -118,12 +135,26 @@ async function runLoop(
   });
 
   const recentTranscript = await deps.store.recentMessages(interviewId, 12);
+  const existingRules = await deps.rules.list(interviewId);
 
-  const { rules: extracted } = await deps.intelligence.extractRule({
+  const { rules: extractedRaw } = await deps.intelligence.extractRule({
     agentDescription: interview.agentDescription,
     turn: expertTurn,
     recentTranscript,
+    existingRules: existingRules.map(toSummary),
   });
+
+  // Deterministic guard: drop near-duplicates of rules we already hold.
+  const extracted = extractedRaw.filter(
+    (candidate) =>
+      !existingRules.some(
+        (existing) =>
+          similarity(
+            `${candidate.condition} ${candidate.expectedBehavior}`,
+            `${existing.condition} ${existing.expectedBehavior}`,
+          ) >= 0.7,
+      ),
+  );
 
   // Rules are independent: retrieve + classify each one concurrently.
   const classifications = await Promise.all(
@@ -198,6 +229,23 @@ async function runLoop(
   });
 
   return { question: followUp.question, snapshot: await snapshot(deps, interviewId) };
+}
+
+/** Jaccard similarity over significant words — good enough for dedupe at MVP scale. */
+export function similarity(a: string, b: string): number {
+  const words = (s: string) =>
+    new Set(
+      s
+        .toLowerCase()
+        .replace(/[^a-z0-9\s]/g, " ")
+        .split(/\s+/)
+        .filter((w) => w.length > 2),
+    );
+  const wa = words(a);
+  const wb = words(b);
+  if (wa.size === 0 || wb.size === 0) return 0;
+  const overlap = [...wa].filter((w) => wb.has(w)).length;
+  return overlap / (wa.size + wb.size - overlap);
 }
 
 function toSummary(rule: StoredRule): RuleSummary {

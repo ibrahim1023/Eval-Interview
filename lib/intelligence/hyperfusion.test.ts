@@ -42,6 +42,7 @@ describe("hyperfusion provider", () => {
       agentDescription: "Reviews PRs",
       turn: { turnIndex: 1, speaker: "expert", content: "Block migrations without rollbacks." },
       recentTranscript: [],
+      existingRules: [],
     });
 
     expect(out.rules).toHaveLength(1);
@@ -113,6 +114,7 @@ describe("hyperfusion provider", () => {
         agentDescription: "a",
         turn: { turnIndex: 0, speaker: "expert", content: "x" },
         recentTranscript: [],
+        existingRules: [],
       }),
     ).rejects.toBeInstanceOf(IntelligenceError);
   });
@@ -125,6 +127,7 @@ describe("hyperfusion provider", () => {
         agentDescription: "a",
         turn: { turnIndex: 0, speaker: "expert", content: "x" },
         recentTranscript: [],
+        existingRules: [],
       }),
     ).rejects.toBeInstanceOf(IntelligenceError);
   });

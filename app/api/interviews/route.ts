@@ -1,6 +1,6 @@
-import { NextResponse } from "next/server";
+import { after, NextResponse } from "next/server";
 import { z } from "zod";
-import { createInterview, registerSource } from "@/lib/interview";
+import { createInterview, registerSource, setCrawlStatus } from "@/lib/interview";
 
 const createSchema = z.object({
   agentName: z.string().min(1),
@@ -25,10 +25,19 @@ export async function POST(request: Request) {
     knowledgeSource: { url: parsed.data.knowledgeSourceUrl },
   });
 
-  const { pageCount } = await registerSource({
-    interviewId: interview.id,
-    source: { url: parsed.data.knowledgeSourceUrl },
+  // Crawls can take over a minute on large doc sites; respond immediately
+  // and let the interview screen show progress while chunks land.
+  after(async () => {
+    try {
+      const { pageCount } = await registerSource({
+        interviewId: interview.id,
+        source: { url: parsed.data.knowledgeSourceUrl },
+      });
+      await setCrawlStatus(interview.id, pageCount > 0 ? "ready" : "failed");
+    } catch {
+      await setCrawlStatus(interview.id, "failed");
+    }
   });
 
-  return NextResponse.json({ interview, pageCount }, { status: 201 });
+  return NextResponse.json({ interview }, { status: 201 });
 }
