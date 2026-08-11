@@ -34,17 +34,49 @@ const STATUS_CHIP: Record<Rule["status"], string> = {
   unresolved: "bg-violet-100 text-violet-800",
 };
 
+const MAX_RECONNECT_ATTEMPTS = 3;
+
 function VoiceControls({ interviewId }: { interviewId: string }) {
-  const conversation = useConversation();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [reconnecting, setReconnecting] = useState(false);
+  const reconnectAttempts = useRef(0);
+  const reconnectTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const conversation = useConversation({
+    onConnect: () => {
+      reconnectAttempts.current = 0;
+      setReconnecting(false);
+    },
+    onDisconnect: (details) => {
+      if (details.reason !== "error") return;
+      if (reconnectAttempts.current >= MAX_RECONNECT_ATTEMPTS) {
+        setReconnecting(false);
+        setError("Connection lost. Start the interview again to continue.");
+        return;
+      }
+      reconnectAttempts.current += 1;
+      setReconnecting(true);
+      reconnectTimer.current = setTimeout(() => void start(), 2000);
+    },
+  });
+
+  useEffect(() => {
+    return () => {
+      if (reconnectTimer.current) clearTimeout(reconnectTimer.current);
+    };
+  }, []);
 
   const isConnected = conversation.status === "connected";
-  const isConnecting = conversation.status === "connecting";
+  const isConnecting = conversation.status === "connecting" || reconnecting;
   const isSpeaking = conversation.isSpeaking;
   const isListening = conversation.isListening;
 
   async function start() {
+    if (reconnectTimer.current) {
+      clearTimeout(reconnectTimer.current);
+      reconnectTimer.current = null;
+    }
     setBusy(true);
     setError(null);
     try {
@@ -61,6 +93,7 @@ function VoiceControls({ interviewId }: { interviewId: string }) {
         dynamicVariables: { interview_id: interviewId },
       });
     } catch (err) {
+      setReconnecting(false);
       setError(err instanceof Error ? err.message : "Failed to start voice session");
     } finally {
       setBusy(false);
@@ -68,6 +101,12 @@ function VoiceControls({ interviewId }: { interviewId: string }) {
   }
 
   async function stop() {
+    if (reconnectTimer.current) {
+      clearTimeout(reconnectTimer.current);
+      reconnectTimer.current = null;
+    }
+    reconnectAttempts.current = MAX_RECONNECT_ATTEMPTS;
+    setReconnecting(false);
     setBusy(true);
     setError(null);
     try {
@@ -94,15 +133,17 @@ function VoiceControls({ interviewId }: { interviewId: string }) {
           }`}
         />
         <strong className="font-semibold text-neutral-900">
-          {isConnecting
-            ? "Connecting…"
-            : isConnected
-              ? isSpeaking
-                ? "Speaking…"
-                : isListening
-                  ? "Listening…"
-                  : "Connected"
-              : "Ready"}
+          {reconnecting
+            ? "Reconnecting…"
+            : isConnecting
+              ? "Connecting…"
+              : isConnected
+                ? isSpeaking
+                  ? "Speaking…"
+                  : isListening
+                    ? "Listening…"
+                    : "Connected"
+                : "Ready"}
         </strong>
       </div>
       {error && <span className="text-sm text-red-600">{error}</span>}

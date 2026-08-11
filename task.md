@@ -27,7 +27,7 @@ full phase plan and history; see git history for implementation detail.
 - [x] Interview screen uses `@elevenlabs/react` (`ConversationProvider` / `useConversation`).
 - [x] Listening/speaking state indicators in the interview footer.
 - [x] Side-panel polling kept from Phase 1.
-- [ ] Session resume on reconnect from persisted DB state (deferred — polling already recovers state).
+- [x] Session resume on reconnect: unexpected disconnects auto-reconnect with a fresh signed URL and the same `interview_id` (up to 3 attempts); orchestrator state persists in Postgres, so the loop continues from the last turn.
 
 ### Remaining
 
@@ -37,8 +37,6 @@ full phase plan and history; see git history for implementation detail.
 
 - Near-duplicate rules across turns are not merged yet (resolve in the Phase 3
   review screen or add cheap dedupe).
-- Voice session resume on reconnect is not implemented; UI state recovers via
-  polling, but a dropped WebSocket requires starting a new session.
 
 ## Completion Criteria (Phase 2)
 

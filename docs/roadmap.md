@@ -84,8 +84,10 @@ works conversationally.
 3. ~~Interview screen voice UI~~ — done: `@elevenlabs/react`
    (`ConversationProvider`/`useConversation`), listening/speaking indicators,
    side panel keeps polling.
-4. Session resume from persisted state on disconnect — **deferred** (UI state
-   recovers via polling; a dropped WebSocket starts a new session).
+4. ~~Session resume from persisted state on disconnect~~ — done: unexpected
+   disconnects auto-reconnect with a fresh signed URL and the same
+   `interview_id` dynamic variable (capped attempts); the orchestrator resumes
+   from persisted Postgres state.
 
 **Exit criteria:** a real voice conversation drives the identical loop proven in
 Phase 1; Context.dev findings visibly change the next spoken question.
@@ -191,8 +193,6 @@ attach the video.
 
 ## Deferred Work & Known Follow-ups
 
-- **Voice session resume on reconnect** (Phase 2): deferred — polling recovers
-  UI state, but a dropped WebSocket currently requires starting a new session.
 - **Near-duplicate rule merging** (Phase 1): rules extracted across turns are
   not deduped. Resolve in the Phase 3 review screen or with a cheap
   similarity check.
