@@ -129,7 +129,28 @@ describe("hyperfusion provider", () => {
     ).rejects.toBeInstanceOf(IntelligenceError);
   });
 
-  it("sends model, JSON mode, and generous token budget", async () => {
+  it("sends the default model, JSON mode, and generous token budget", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      jsonResponse({ question: "q", rationale: "r", strategy: "probe" }),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    const provider = createHyperfusionProvider();
+    await provider.generateFollowUp({
+      transcript: [],
+      behaviorModel: [],
+      evidenceClassifications: [],
+      coverageGaps: [],
+    });
+
+    const body = JSON.parse(fetchMock.mock.calls[0][1].body as string);
+    expect(body.model).toBe("google/gemma-4-31b-it");
+    expect(body.response_format).toEqual({ type: "json_object" });
+    expect(body.max_tokens).toBeGreaterThanOrEqual(2048);
+  });
+
+  it("honors the HYPERFUSION_MODEL override", async () => {
+    process.env.HYPERFUSION_MODEL = "openai/gpt-oss-120b";
     const fetchMock = vi.fn().mockResolvedValue(
       jsonResponse({ question: "q", rationale: "r", strategy: "probe" }),
     );
@@ -145,7 +166,6 @@ describe("hyperfusion provider", () => {
 
     const body = JSON.parse(fetchMock.mock.calls[0][1].body as string);
     expect(body.model).toBe("openai/gpt-oss-120b");
-    expect(body.response_format).toEqual({ type: "json_object" });
-    expect(body.max_tokens).toBeGreaterThanOrEqual(2048);
+    delete process.env.HYPERFUSION_MODEL;
   });
 });

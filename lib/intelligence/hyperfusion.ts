@@ -9,8 +9,10 @@ import { buildExtractRulePrompt } from "./prompts/extractRule";
 import { buildClassifyEvidencePrompt } from "./prompts/classifyEvidence";
 import { buildFollowUpPrompt } from "./prompts/generateFollowUp";
 
-const MODEL = "openai/gpt-oss-120b";
-// gpt-oss-120b is a reasoning model; reasoning_content consumes the token budget.
+// gemma-4-31b-it answers structured prompts in ~1s vs ~9s for gpt-oss-120b
+// (verified 2026-08-11); voice turns need that latency. Override via
+// HYPERFUSION_MODEL.
+const DEFAULT_MODEL = "google/gemma-4-31b-it";
 const MAX_TOKENS = 4096;
 
 export class IntelligenceError extends Error {
@@ -34,7 +36,7 @@ async function chat(messages: ChatMessage[], temperature: number): Promise<strin
       Authorization: `Bearer ${apiKey}`,
     },
     body: JSON.stringify({
-      model: MODEL,
+      model: process.env.HYPERFUSION_MODEL ?? DEFAULT_MODEL,
       messages,
       temperature,
       max_tokens: MAX_TOKENS,

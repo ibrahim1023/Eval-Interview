@@ -125,57 +125,54 @@ async function runLoop(
     recentTranscript,
   });
 
-  const classifications: {
-    ruleCondition: string;
-    classification: EvidenceClassification["classification"];
-    rationale: string;
-  }[] = [];
+  // Rules are independent: retrieve + classify each one concurrently.
+  const classifications = await Promise.all(
+    extracted.map(async (provisional) => {
+      const stored = await deps.rules.create(interviewId, provisional);
 
-  for (const provisional of extracted) {
-    const stored = await deps.rules.create(interviewId, provisional);
+      const chunks = await deps.retrieveEvidence({
+        interviewId,
+        query: `${provisional.condition} ${provisional.expectedBehavior}`,
+        limit: 6,
+      });
 
-    const chunks = await deps.retrieveEvidence({
-      interviewId,
-      query: `${provisional.condition} ${provisional.expectedBehavior}`,
-      limit: 6,
-    });
+      const classification = await deps.intelligence.classifyEvidence({
+        rule: provisional,
+        evidence: chunks,
+      });
 
-    const classification = await deps.intelligence.classifyEvidence({
-      rule: provisional,
-      evidence: chunks,
-    });
-
-    classifications.push({
-      ruleCondition: provisional.condition,
-      classification: classification.classification,
-      rationale: classification.rationale,
-    });
-
-    const relationship = CLASSIFICATION_TO_RELATIONSHIP[classification.classification];
-    if (relationship && chunks.length > 0) {
-      const relevant = chunks.filter((c) =>
-        classification.relevantChunks.length === 0
-          ? true
-          : classification.relevantChunks.some((id) => {
-              const idx = Number(id.replace("chunk_", ""));
-              return chunks[idx] === c;
-            }),
-      );
-      for (const chunk of relevant) {
-        await deps.evidence.add({
-          interviewId,
-          ruleId: stored.id,
-          source: chunk.source,
-          content: chunk.content.slice(0, 2000),
-          relationship,
-        });
-        await deps.rules.attachContextSource(stored.id, chunk.source);
+      const relationship = CLASSIFICATION_TO_RELATIONSHIP[classification.classification];
+      if (relationship && chunks.length > 0) {
+        const relevant = chunks.filter((c) =>
+          classification.relevantChunks.length === 0
+            ? true
+            : classification.relevantChunks.some((id) => {
+                const idx = Number(id.replace("chunk_", ""));
+                return chunks[idx] === c;
+              }),
+        );
+        for (const chunk of relevant) {
+          await deps.evidence.add({
+            interviewId,
+            ruleId: stored.id,
+            source: chunk.source,
+            content: chunk.content.slice(0, 2000),
+            relationship,
+          });
+          await deps.rules.attachContextSource(stored.id, chunk.source);
+        }
       }
-    }
 
-    const newStatus = reconcileStatus(classification.classification);
-    if (newStatus) await deps.rules.setStatus(stored.id, newStatus);
-  }
+      const newStatus = reconcileStatus(classification.classification);
+      if (newStatus) await deps.rules.setStatus(stored.id, newStatus);
+
+      return {
+        ruleCondition: provisional.condition,
+        classification: classification.classification,
+        rationale: classification.rationale,
+      };
+    }),
+  );
 
   const allRules = await deps.rules.list(interviewId);
   const transcript = await deps.store.listMessages(interviewId);
