@@ -147,17 +147,17 @@ Goal: replace the text box with the real voice interview. Orchestrator unchanged
 - [x] Create `lib/elevenlabs/client.ts` with `startConversation` and `deleteAgent`.
 - [x] Add `ELEVENLABS_WEBHOOK_SECRET` handling in the webhook tool headers.
 - [x] Implement `startConversation` to fetch a signed ElevenLabs Conversational AI URL using the shared `ELEVENLABS_AGENT_ID`.
-- [ ] Create an API route that returns the signed URL for an interview and wire the interview UI to start the voice session.
-- [ ] Implement transcript ingestion path (webhook or client callback → `POST /api/interviews/[id]/turns`).
-- [ ] Unit tests for `buildSystemPrompt` and the client with mocked fetch.
+- [x] Create `POST /api/interviews/[id]/voice/start` route returning the signed URL.
+- [x] Transcript ingestion path: ElevenLabs agent calls `POST /api/interviews/[id]/turns` via the webhook tool (verified with live curl).
+- [x] Unit tests for `buildSystemPrompt` and the client with mocked fetch (8 tests).
 
 ### 2.2 API & UI updates for voice
 
-- [ ] Add `POST /api/webhooks/elevenlabs` route to receive turn events.
-- [ ] Update `app/interview/[id]/page.tsx` to embed ElevenLabs widget or WebSocket client.
-- [ ] Add listening/speaking state indicators.
-- [ ] Keep side panel polling from Phase 1.
-- [ ] Implement session resume on reconnect from persisted DB state.
+- [x] No separate `/api/webhooks/elevenlabs` route — the existing `turns` endpoint receives the agent's tool calls.
+- [x] Update `app/interview/[id]/page.tsx` to use `@elevenlabs/react` `ConversationProvider` and `useConversation`.
+- [x] Add listening/speaking state indicators in the interview footer.
+- [x] Keep side panel polling from Phase 1.
+- [ ] Implement session resume on reconnect from persisted DB state. (deferred — polling already recovers state)
 
 ### 2.3 Phase 2 commit
 

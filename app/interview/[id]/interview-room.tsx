@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import { ConversationProvider, useConversation } from "@elevenlabs/react";
 
 type Message = {
   id: string;
@@ -33,6 +34,91 @@ const STATUS_CHIP: Record<Rule["status"], string> = {
   unresolved: "bg-violet-100 text-violet-800",
 };
 
+function VoiceControls({ interviewId }: { interviewId: string }) {
+  const conversation = useConversation();
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const isConnected = conversation.status === "connected";
+  const isConnecting = conversation.status === "connecting";
+  const isSpeaking = conversation.isSpeaking;
+  const isListening = conversation.isListening;
+
+  async function start() {
+    setBusy(true);
+    setError(null);
+    try {
+      const res = await fetch(`/api/interviews/${interviewId}/voice/start`, {
+        method: "POST",
+      });
+      if (!res.ok) {
+        const body = await res.text();
+        throw new Error(`Failed to start voice session: ${body}`);
+      }
+      const { signedUrl } = (await res.json()) as { signedUrl: string };
+      await conversation.startSession({
+        signedUrl,
+        dynamicVariables: { interview_id: interviewId },
+      });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to start voice session");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function stop() {
+    setBusy(true);
+    setError(null);
+    try {
+      await conversation.endSession();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to end voice session");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div className="flex items-center gap-4">
+      <div className="flex items-center gap-2 text-[13.5px] text-neutral-500">
+        <span
+          className={`inline-block h-2 w-2 rounded-full ${
+            isConnected
+              ? isSpeaking
+                ? "bg-green-600 animate-pulse"
+                : "bg-blue-600"
+              : isConnecting
+                ? "bg-amber-600 animate-pulse"
+                : "bg-neutral-400"
+          }`}
+        />
+        <strong className="font-semibold text-neutral-900">
+          {isConnecting
+            ? "Connecting…"
+            : isConnected
+              ? isSpeaking
+                ? "Speaking…"
+                : isListening
+                  ? "Listening…"
+                  : "Connected"
+              : "Ready"}
+        </strong>
+      </div>
+      {error && <span className="text-sm text-red-600">{error}</span>}
+      <button
+        onClick={isConnected ? stop : start}
+        disabled={busy || isConnecting}
+        className={`rounded-lg px-4 py-2 text-[13.5px] font-medium text-white ${
+          isConnected ? "bg-red-600 hover:bg-red-700" : "bg-neutral-900 hover:bg-neutral-800"
+        } disabled:opacity-50`}
+      >
+        {isConnected ? "End interview" : "Start voice interview"}
+      </button>
+    </div>
+  );
+}
+
 export function InterviewRoom(props: {
   interviewId: string;
   agentName: string;
@@ -45,8 +131,6 @@ export function InterviewRoom(props: {
   const [messages, setMessages] = useState(props.initialMessages);
   const [rules, setRules] = useState(props.initialRules);
   const [evidence, setEvidence] = useState(props.initialEvidence);
-  const [input, setInput] = useState("");
-  const [busy, setBusy] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
 
   const supported = evidence.filter((e) => e.relationship === "supported").length;
@@ -69,30 +153,6 @@ export function InterviewRoom(props: {
     }, 2500);
     return () => clearInterval(timer);
   }, [props.interviewId]);
-
-  async function send(event: React.FormEvent) {
-    event.preventDefault();
-    const content = input.trim();
-    if (!content || busy) return;
-    setBusy(true);
-    setInput("");
-    try {
-      await fetch(`/api/interviews/${props.interviewId}/turns`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ content }),
-      });
-      const res = await fetch(`/api/interviews/${props.interviewId}`);
-      if (res.ok) {
-        const data = await res.json();
-        setMessages(data.messages);
-        setRules(data.rules);
-        setEvidence(data.evidence);
-      }
-    } finally {
-      setBusy(false);
-    }
-  }
 
   async function finish() {
     await fetch(`/api/interviews/${props.interviewId}/finish`, { method: "POST" });
@@ -118,7 +178,7 @@ export function InterviewRoom(props: {
         <section className="overflow-y-auto px-8 pt-7 pb-32">
           {messages.length === 0 && (
             <p className="mt-8 text-center text-sm text-neutral-400">
-              The interview hasn&rsquo;t started. Answer the interviewer&rsquo;s first question below.
+              Start the voice interview to begin.
             </p>
           )}
           {messages.map((m) => (
@@ -203,22 +263,9 @@ export function InterviewRoom(props: {
       </div>
 
       <div className="fixed right-[340px] bottom-0 left-0 flex items-center gap-4 border-t border-neutral-200 bg-white px-8 py-4">
-        <div className="flex items-center gap-2 text-[13.5px] text-neutral-500">
-          <span className="inline-block h-2 w-2 rounded-full bg-green-600" />
-          <strong className="font-semibold text-neutral-900">
-            {busy ? "Thinking…" : "Listening"}
-          </strong>
-          — voice arrives in Phase 2; type below for now
-        </div>
-        <form onSubmit={send} className="flex flex-1 gap-2">
-          <input
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            disabled={busy}
-            placeholder="Type the expert's answer…"
-            className="flex-1 rounded-lg border border-neutral-200 px-3 py-2.5 text-sm focus:border-neutral-900 focus:outline-none disabled:opacity-50"
-          />
-        </form>
+        <ConversationProvider>
+          <VoiceControls interviewId={props.interviewId} />
+        </ConversationProvider>
       </div>
     </div>
   );
