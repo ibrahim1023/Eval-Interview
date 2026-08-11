@@ -58,6 +58,22 @@ From live demo runs (2026-08-11):
   the strategist must abandon a sticking point after two failed attempts and
   can mark rules `unresolved` via `abandonRuleIds`.
 
+From the 2026-08-11 Refund Copilot run (post-fixes):
+
+- **Agent acknowledges but skips the tool call** (2 of 9 turns): the
+  acknowledgment-then-tool instruction lets gemini-2.0-flash stop after the
+  ack; the answer never reaches the engine and an "Are you still there?"
+  loop follows. Fix direction: make ack + tool call atomic in the prompt
+  ("never speak the acknowledgment without calling the tool"); if it
+  persists, bump the agent's LLM.
+- **Residual turn latency** (~10-24s worst case): STT → webhook → engine
+  (~7s) → TTS. Grows with transcript length. Fix direction: trim prompt
+  sizes (transcript tail instead of full transcript for follow-ups).
+- **Transcript UX timing:** the expert's own bubble only appears after the
+  server round-trip, while the interviewer's question text appears before
+  it's spoken. Fix direction: render the expert's utterance immediately from
+  the SDK's local transcript events and reconcile with polled state.
+
 ## Completion Criteria (Phase 2)
 
 - A real voice conversation drives the same adaptive loop proven in Phase 1.
