@@ -8,56 +8,33 @@ EvalInterview converts domain expertise and organizational knowledge into
 executable behavioral evals for AI agents. It interviews a domain expert by
 voice (ElevenLabs), retrieves evidence from Context.dev, detects conflicts and
 gaps, and compiles a reviewed behavior spec into YAML scenarios and a Python
-runner. Read `EvalInterview-product-spec.md` for scope; read `task.md` for the
-current phase.
+runner. Read `EvalInterview-product-spec.md` for scope, `task.md` for current
+work, `docs/architecture.md` for design rationale, and `docs/roadmap.md` for
+phase history and plans.
 
-## Tech Stack
+## Stack & Layout
 
-| Layer       | Choice                                    |
-| ----------- | ----------------------------------------- |
-| App         | Next.js (App Router), TypeScript          |
-| Styling     | Tailwind CSS, shadcn/ui                   |
-| Database    | Supabase Postgres + Drizzle ORM           |
-| Voice       | ElevenLabs Conversational AI              |
-| Retrieval   | Context.dev                               |
-| LLM         | Hyperfusion.io behind `IntelligenceProvider` |
-| Eval runner | Python, PyYAML, minimal dependencies      |
+Next.js App Router + TypeScript, Tailwind + shadcn/ui, Supabase/Postgres +
+Drizzle, ElevenLabs Conversational AI, Context.dev, Hyperfusion.io behind
+`IntelligenceProvider`. Python is used only for `eval-runner/`.
 
-## Repository Layout
-
-```text
-app/              # Next.js routes (4 screens + api/)
-components/       # shadcn/ui based components
-lib/
-  elevenlabs/     # Voice session client
-  context/        # Context.dev client
-  intelligence/   # IntelligenceProvider abstraction
-  interview/      # Orchestration
-  rules/          # Rule lifecycle and repository
-  evals/          # Scenario generation and export
-eval-runner/      # Python CLI: evalinterview run ./generated-evals
-examples/         # domain-specific example data
-scripts/          # one-time setup and verification scripts
-docs/             # Architecture, data model, integrations, roadmap
-```
+Core logic:
+- `lib/interview/` orchestration (owns the per-turn loop)
+- `lib/intelligence/` LLM boundary (`IntelligenceProvider` + versioned prompts)
+- `lib/context/` Context.dev ingestion + local Postgres FTS retrieval over `source_chunks`
+- `lib/elevenlabs/` voice session client and agent config
+- `lib/rules/` rule lifecycle and repository
+- `lib/db/` Drizzle schema and client
+- `app/` four screens + thin API route handlers
+- `eval-runner/` Python CLI: `evalinterview run ./generated-evals`
+- `scripts/` one-time setup and verification scripts
 
 ## Commands
 
 ```bash
-npm install
-npm run dev          # local dev server
-npm run build        # production build (must pass before merge)
-npm run lint         # ESLint
-npm run typecheck    # tsc --noEmit (must pass before merge)
-npm run test         # vitest
-npm run db:generate  # generate Drizzle migrations
-npm run db:migrate   # apply migrations
-npm run db:push      # push schema to dev DB
-npm run db:studio    # Drizzle studio
-
-cd eval-runner
-pip install -e .
-evalinterview run ./generated-evals
+npm run dev / lint / typecheck / test / build
+npm run db:generate / db:migrate / db:push / db:studio
+cd eval-runner && pip install -e . && evalinterview run ./generated-evals
 ```
 
 One-time ElevenLabs tool/agent setup scripts live in `scripts/` and are
@@ -73,12 +50,12 @@ console JSON editor for this shape; its internal schema is unreliable.
 5. **Never silently resolve conflicts.** Contradictions between expert statements and retrieved knowledge are always surfaced to the expert.
 6. **Minimal infrastructure.** Next.js + Postgres. No microservices, queues, or Kubernetes unless an external API genuinely requires one.
 
-## Code Conventions
+## Boundaries & Conventions
 
 - TypeScript strict mode. No `any` without a comment explaining why.
 - LLM access only via `IntelligenceProvider` (`lib/intelligence/`). Never call the model SDK directly from routes or components.
 - External services only via their `lib/` clients (`elevenlabs/`, `context/`). Route handlers orchestrate; they do not contain vendor SDK details.
-- Data model is minimal: `Interview`, `Message`, `Rule`, `Evidence`, `Scenario`. Do not expand without a documented reason.
+- Keep persistence minimal. Core tables are `interviews`, `messages`, `rules`, `evidence`, `scenarios`, plus `source_chunks` for retrieved knowledge. Do not add persistent entities without a concrete product requirement.
 - Scenario YAML and behavior-spec YAML are public contracts. Changing them is a breaking change.
 - Keep the UI to the four spec'd screens: Landing, New Interview, Interview, Results.
 - Match the surrounding style. Compact code; no speculative abstractions.
@@ -101,14 +78,23 @@ multi-agent orchestration, workflow builders, dashboards, connector ecosystems,
 fine-tuning, complex policy languages, multi-expert consensus. Multi-expert
 interviewing is a future extension, not MVP.
 
-## Definition of Done
+## Verification
 
-- `npm run lint`, `npm run typecheck`, and `npm run build` pass.
-- Python runner changes are verified by running an exported suite.
-- No secrets committed; `.env.example` updated if env vars changed.
-- `task.md` checkboxes updated in the relevant commit.
-- `README.md` updated if the change alters project status, setup, or major features.
-- Core invariants still hold.
+For iterative work, run the narrowest executable checks that prove the change;
+run affected tests first. Before merging, finishing a phase, or making
+repository-wide changes, all of these must pass:
+
+```bash
+npm run lint
+npm run typecheck
+npm run test
+npm run build
+```
+
+Python runner changes must also be verified with the relevant Python tests or
+an exported-suite smoke test. Commit no secrets; update `.env.example` if env
+vars change. Update `task.md` in the same commit as the work it tracks, and
+`README.md` if project status, setup, or major features change.
 
 ## After Finishing a Phase
 

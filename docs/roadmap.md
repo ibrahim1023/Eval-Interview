@@ -1,5 +1,19 @@
 # EvalInterview — Implementation Roadmap & Strategy
 
+## Status
+
+| Phase | State |
+| ----- | ----- |
+| Phase 0 — Scaffold & API verification | Complete |
+| Phase 1 — Core vertical slice (text input) | Complete (live-API smoke test 2026-08-10) |
+| Phase 2 — ElevenLabs voice | In progress: voice session + UI shipped; manual demo pending |
+| Phase 3 — Review, scenario generation, export, Python runner | Not started |
+| Phase 4 — UI polish | Not started |
+| Phase 5 — Examples, README, launch | Not started |
+
+`task.md` tracks only the current phase. Git history is the authoritative
+record of completed implementation detail.
+
 ## Strategy in one paragraph
 
 Build the **core loop first, with text input** — the differentiating value is the
@@ -35,18 +49,20 @@ voice. No polish.
 2. DB schema + migrations (`interviews`, `messages`, `rules`, `evidence`,
    `scenarios`) per `docs/data-model.md`.
 3. `ContextClient` (`lib/context/`) — register source, retrieve, scan topics.
+   Context.dev is an ingestion API only (scrape → Markdown), so retrieval is
+   local: Postgres full-text search over the `source_chunks` table.
 4. `IntelligenceProvider` (`lib/intelligence/`) — `extractRule`,
    `classifyEvidence`, `generateFollowUp` with structured output + Zod.
 5. Interview orchestrator (`lib/interview/`) — per-turn loop:
    extract → retrieve → classify → reconcile → follow-up.
 6. Minimal screens: New Interview, Interview (text box instead of voice) with the
    live side panel (rules discovered / supported / conflict / uncovered areas).
-7. Rule Review screen: confirm/edit rules; counts of unresolved/conflict/confirmed.
+7. Rule Review screen — **moved to Phase 3**; the Phase 1 Results screen is
+   read-only.
 
 **Exit criteria (runnable demo):** type expert answers in → provisional rules
 extracted → Context.dev evidence retrieved and classified → conflicts and gaps
-surfaced → adaptive follow-up questions reflect the evidence → rules confirmed in
-review.
+surfaced → adaptive follow-up questions reflect the evidence.
 
 **Primary risk:** the adaptive loop feels questionnaire-like. Mitigate early with
 prompt iteration against 2–3 fixture transcripts (support lead, senior engineer).
@@ -58,13 +74,18 @@ works conversationally.
 
 **Build:**
 
-1. `VoiceSessionClient` (`lib/elevenlabs/`) — session start, context updates,
-   transcript ingestion (webhook/callback → `POST .../turns`).
-2. Server-side interviewer system-prompt assembly from `InterviewerContext`,
-   refreshed after each loop iteration.
-3. Interview screen voice UI: mic state, live transcript, speaking indicator; the
-   side panel keeps updating in real time.
-4. Session resume from persisted state on disconnect.
+1. ~~`VoiceSessionClient` (`lib/elevenlabs/`)~~ — done as a thin voice client:
+   `POST /api/interviews/[id]/voice/start` returns a signed URL; a shared
+   ElevenLabs agent calls `POST .../turns` via a webhook tool after each expert
+   turn. All reasoning stays server-side in the orchestrator.
+2. ~~Server-side interviewer system-prompt assembly~~ — done as a static agent
+   prompt (`lib/elevenlabs/agent-config.ts`); per-turn context flows through the
+   orchestrator's generated questions instead of mid-session context updates.
+3. ~~Interview screen voice UI~~ — done: `@elevenlabs/react`
+   (`ConversationProvider`/`useConversation`), listening/speaking indicators,
+   side panel keeps polling.
+4. Session resume from persisted state on disconnect — **deferred** (UI state
+   recovers via polling; a dropped WebSocket starts a new session).
 
 **Exit criteria:** a real voice conversation drives the identical loop proven in
 Phase 1; Context.dev findings visibly change the next spoken question.
@@ -149,7 +170,7 @@ attach the video.
 | 6 | Evidence retrieval for rules | Per-turn retrieval loop (Phase 1) |
 | 7 | Detect support / conflict / uncovered areas | `classifyEvidence` + coverage scan |
 | 8 | Context findings influence questions | `generateFollowUp` input contract + demo |
-| 9 | Expert can confirm/edit rules | Rule Review screen (Phase 1) |
+| 9 | Expert can confirm/edit rules | Rule Review screen (Phase 3) |
 | 10 | Provenance preserved | `interview_sources`/`context_sources` → export (Phases 1, 3) |
 | 11 | ≥10 useful scenarios | `generateScenarios` targetCount (Phase 3) |
 | 12 | Multiple scenario types | normal/contrastive/boundary/adversarial files |
@@ -167,6 +188,19 @@ attach the video.
 | LLM extraction quality inconsistent | Rules noisy | Structured output + Zod + confirmation gate in review; rules stay provisional until reconciled |
 | Voice latency kills conversational feel | Demo suffers | Compact interviewer context; speak follow-up only when loop completes; show side-panel activity meanwhile |
 | Scope creep into enterprise features | Never ships | Non-goals list is binding; exporters/integrations are delegated to open-source contribution issues |
+
+## Deferred Work & Known Follow-ups
+
+- **Voice session resume on reconnect** (Phase 2): deferred — polling recovers
+  UI state, but a dropped WebSocket currently requires starting a new session.
+- **Near-duplicate rule merging** (Phase 1): rules extracted across turns are
+  not deduped. Resolve in the Phase 3 review screen or with a cheap
+  similarity check.
+- **Remove `docs/api-notes.md` before launch** (Phase 5): it is a temporary
+  Phase 0 findings document.
+- **Review/export routes** (`POST .../rules/[ruleId]`, `GET .../export`) and
+  the full review screen land in Phase 3; the Interview screen's finish button
+  already moves interviews to `review` status.
 
 ## Post-Launch
 

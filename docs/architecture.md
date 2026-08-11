@@ -50,7 +50,8 @@ return JSON. No vendor SDK details here.
 | `POST /api/interviews` | Create interview (agent description, expert role, knowledge source) |
 | `GET /api/interviews/[id]` | Session state for the Interview screen (polled or streamed) |
 | `POST /api/interviews/[id]/turns` | Ingest a conversation turn (from ElevenLabs webhook/client tool) → run the interview loop → return next question + side-panel updates |
-| `POST /api/interviews/[id]/rules/[ruleId]` | Confirm or edit a rule (Rule Review) |
+| `POST /api/interviews/[id]/voice/start` | Return a signed ElevenLabs WebSocket URL for the shared agent |
+| `POST /api/interviews/[id]/rules/[ruleId]` | Confirm or edit a rule (Rule Review, Phase 3) |
 | `POST /api/interviews/[id]/finish` | Move to review: freeze behavior spec, generate scenarios |
 | `GET /api/interviews/[id]/export` | Produce ZIP of the executable eval suite |
 
@@ -106,15 +107,18 @@ open questions queue
   expert role, existing rules, retrieved evidence, unresolved conflicts, coverage
   gaps, previous answers.
 - Feeds transcript turns back into `POST .../turns`.
-- Phase 1 uses a text-input shim against the same orchestrator interface; Phase 2
-  swaps in the real voice path without changing the orchestrator.
+- The voice path is live (Phase 2): a shared ElevenLabs agent with a static
+  prompt calls the `turns` webhook after each expert turn and speaks the
+  returned question. The orchestrator is unchanged from the Phase 1 text mode.
 
 ### 2.5 `lib/context/` — Context.dev Client
 
 - Registers/uses the knowledge source for the interview (docs URL, GitHub repo,
   docs site, uploaded text — whatever Context.dev reliably supports; **no custom
   connector ecosystem**).
-- `retrieve(query)` → evidence chunks with source references.
+- `retrieve(query)` → evidence chunks with source references. Context.dev is an
+  ingestion API only (sitemap/scrape → Markdown); retrieval is local Postgres
+  full-text search over the `source_chunks` table.
 - Used in two places: the per-turn retrieval loop, and a periodic coverage scan
   that surfaces undiscussed topic areas.
 
@@ -131,6 +135,9 @@ interface IntelligenceProvider {
   generateRubric(input: RubricGenerationInput): Promise<Rubric>
 }
 ```
+
+The first three methods are implemented; `generateScenarios`/`generateRubric`
+land in Phase 3.
 
 All calls use structured output (JSON schema / tool calling) with Zod validation at
 the boundary. Prompts are versioned files in `lib/intelligence/prompts/`, not inline
