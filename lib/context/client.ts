@@ -6,6 +6,7 @@ import { extractTopics, pickRelevantUrls } from "./topics";
 
 export const MAX_SOURCE_PAGES = 25;
 export const MAX_CHUNK_CHARS = 6000;
+const SCRAPE_CONCURRENCY = 5;
 
 export type EvidenceChunk = {
   source: string;
@@ -23,10 +24,20 @@ export async function registerSource(input: {
   const picked = pickRelevantUrls(urls, input.source.url, MAX_SOURCE_PAGES);
 
   let pageCount = 0;
-  for (const url of picked) {
-    try {
-      const page = await scrapeMarkdown(url);
-      if (!page.markdown.trim()) continue;
+  for (let i = 0; i < picked.length; i += SCRAPE_CONCURRENCY) {
+    const batch = picked.slice(i, i + SCRAPE_CONCURRENCY);
+    const pages = await Promise.all(
+      batch.map(async (url) => {
+        try {
+          return await scrapeMarkdown(url);
+        } catch {
+          // Skip pages that fail to scrape (paywalled, blocked, etc.)
+          return null;
+        }
+      }),
+    );
+    for (const page of pages) {
+      if (!page || !page.markdown.trim()) continue;
       await db
         .insert(sourceChunks)
         .values({
@@ -37,8 +48,6 @@ export async function registerSource(input: {
         })
         .onConflictDoNothing();
       pageCount++;
-    } catch {
-      // Skip pages that fail to scrape (paywalled, blocked, etc.)
     }
   }
   return { pageCount };

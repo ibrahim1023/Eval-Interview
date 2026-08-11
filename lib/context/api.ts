@@ -12,10 +12,13 @@ function getConfig() {
   return { baseUrl, apiKey };
 }
 
+const REQUEST_TIMEOUT_MS = 15_000;
+
 async function get<T>(path: string): Promise<T> {
   const { baseUrl, apiKey } = getConfig();
   const res = await fetch(`${baseUrl}${path}`, {
     headers: { Authorization: `Bearer ${apiKey}` },
+    signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
   });
   if (!res.ok) {
     throw new ContextApiError(

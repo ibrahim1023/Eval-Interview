@@ -27,6 +27,16 @@ describe("context api", () => {
     expect(calledUrl).toContain("/web/scrape/sitemap?domain=a.com");
   });
 
+  it("passes an abort signal so requests cannot hang forever", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(JSON.stringify({ success: true, urls: [] }), { status: 200 }),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    await fetchSitemapUrls("a.com");
+    expect(fetchMock.mock.calls[0][1]?.signal).toBeInstanceOf(AbortSignal);
+  });
+
   it("scrapeMarkdown maps the response to a page", async () => {
     vi.stubGlobal(
       "fetch",
@@ -98,6 +108,7 @@ describe("pickRelevantUrls", () => {
     ];
     const picked = pickRelevantUrls(urls, "https://handbook.example.com/engineering", 10);
     expect(picked).toEqual([
+      "https://handbook.example.com/engineering",
       "https://handbook.example.com/engineering/a",
       "https://handbook.example.com/engineering/b",
     ]);
@@ -106,13 +117,33 @@ describe("pickRelevantUrls", () => {
   it("falls back to all urls when none match the source path", () => {
     const urls = ["https://a.com/1", "https://a.com/2", "https://a.com/3"];
     expect(pickRelevantUrls(urls, "https://other.com", 2)).toEqual([
+      "https://other.com",
       "https://a.com/1",
-      "https://a.com/2",
     ]);
   });
 
   it("dedupes urls", () => {
     const urls = ["https://a.com/1", "https://a.com/1", "https://a.com/2"];
-    expect(pickRelevantUrls(urls, "https://a.com", 10)).toHaveLength(2);
+    expect(pickRelevantUrls(urls, "https://a.com/x", 10)).toHaveLength(3);
+  });
+
+  it("skips foreign-language subtrees for a root source", () => {
+    const urls = [
+      "https://semver.org/lang/ca",
+      "https://semver.org/lang/de",
+      "https://semver.org/spec/v2.0.0.html",
+    ];
+    expect(pickRelevantUrls(urls, "https://semver.org", 10)).toEqual([
+      "https://semver.org",
+      "https://semver.org/spec/v2.0.0.html",
+    ]);
+  });
+
+  it("keeps the source's own locale when the source is localized", () => {
+    const urls = ["https://docs.example.com/en/setup", "https://docs.example.com/fr/setup"];
+    expect(pickRelevantUrls(urls, "https://docs.example.com/fr", 10)).toEqual([
+      "https://docs.example.com/fr",
+      "https://docs.example.com/fr/setup",
+    ]);
   });
 });
