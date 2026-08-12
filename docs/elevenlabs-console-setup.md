@@ -114,7 +114,10 @@ curl -s "https://api.elevenlabs.io/v1/convai/agents/$ELEVENLABS_AGENT_ID" \
 ```
 
 It must contain the `submit_expert_turn` tool ID. To re-attach, PATCH the agent
-with the full existing prompt object plus `tool_ids: ["<tool-id>"]`.
+with the full existing prompt object plus `tool_ids: ["<tool-id>"]`. When
+PATCHing a fetched agent config, first remove the `tools` key from the prompt
+object — the API expands `tool_ids` into an inline `tools` array on read and
+rejects payloads that contain both (`both_tools_and_tool_ids_provided`).
 
 ### 5.5 Local development (tunnel)
 

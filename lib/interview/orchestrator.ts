@@ -211,7 +211,8 @@ async function runLoop(
   const coverageGaps = findCoverageGaps(topics, allRules, transcript);
 
   const followUp = await deps.intelligence.generateFollowUp({
-    transcript,
+    // A tail keeps the prompt small; latency matters because a voice agent waits on it.
+    transcript: transcript.slice(-12),
     behaviorModel: allRules.map(toSummary),
     evidenceClassifications: classifications,
     coverageGaps,

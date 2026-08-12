@@ -7,6 +7,17 @@ export function NewInterviewForm() {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [sourceUrl, setSourceUrl] = useState("");
+  const [urlTouched, setUrlTouched] = useState(false);
+
+  const urlValid = (() => {
+    try {
+      return Boolean(new URL(sourceUrl));
+    } catch {
+      return false;
+    }
+  })();
+  const showUrlError = urlTouched && !urlValid && sourceUrl.length > 0;
 
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -85,22 +96,30 @@ export function NewInterviewForm() {
           name="knowledgeSourceUrl"
           type="url"
           required
-          className={field}
+          className={`${field} ${showUrlError ? "border-red-400" : ""}`}
           placeholder="https://handbook.example.com"
+          value={sourceUrl}
+          onChange={(e) => setSourceUrl(e.target.value)}
+          onBlur={() => setUrlTouched(true)}
         />
-        <p className="mt-1 text-xs text-neutral-400">
-          A documentation site or handbook URL. Crawled via Context.dev before the interview starts.
-        </p>
+        {showUrlError ? (
+          <p className="mt-1 text-xs text-red-600">Enter a valid URL, e.g. https://docs.stripe.com/refunds</p>
+        ) : (
+          <p className="mt-1 text-xs text-neutral-400">
+            A documentation site or handbook URL. Crawled via Context.dev in the background when the
+            interview starts.
+          </p>
+        )}
       </div>
 
       {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
 
       <button
         type="submit"
-        disabled={loading}
+        disabled={loading || !urlValid}
         className="mt-7 w-full rounded-lg bg-neutral-900 py-3 text-[15px] font-medium text-white hover:bg-black disabled:opacity-50"
       >
-        {loading ? "Crawling knowledge source…" : "Start Interview"}
+        {loading ? "Creating interview…" : "Start Interview"}
       </button>
     </form>
   );

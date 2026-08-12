@@ -25,7 +25,7 @@ export default async function InterviewPage({
       agentName={interview.agentName}
       expertRole={interview.expertRole}
       initialMessages={messageRows}
-      initialRules={ruleRows}
+      initialRules={ruleRows.map((r) => ({ ...r, createdAt: r.createdAt.toISOString() }))}
       initialEvidence={evidenceRows}
       initialCrawlStatus={interview.crawlStatus}
     />

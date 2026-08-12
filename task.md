@@ -1,8 +1,8 @@
 # Current Work
 
-Current phase: **Phase 3 — Review, Scenario Generation, Export & Python Runner**.
-Approved design: `mockups/results-v3.html` ("Living Spec" document review).
-See `docs/roadmap.md` for the full phase plan and history.
+Current phase: **Phase 4 — UI Polish**. Approved design: `mockups/interview-v3.html`
+and `mockups/results-v3.html` ("Living Spec"). See `docs/roadmap.md` for the full
+phase plan and history.
 
 ## Completed
 
@@ -14,36 +14,34 @@ See `docs/roadmap.md` for the full phase plan and history.
   after Phase 4** per project decision 2026-08-12; the loop was verified live
   in the 2026-08-11 Refund Copilot run (7/7 tool calls, conflict surfaced and
   resolved, graceful handling of unknowns).
+- **Phase 3** — review screen (Living Spec), scenario/rubric generation, ZIP
+  export, Python runner. Verified end to end (live generate → export →
+  `evalinterview run` against a stub agent).
 
-## Phase 3 — Review, Scenario Generation, Export & Runner
+## Phase 4 — UI Polish
 
-### 3.1 Review screen (per mockups/results-v3.html)
+- [x] Interview screen rebuilt to `mockups/interview-v3.html`: conversation rail,
+  live spec document (sections, stamps, conflict margin notes, drafting shimmer),
+  waveform voice bar; expert utterance echoes instantly from SDK transcript events.
+- [x] Landing page in the v3 design language (paper/ink/serif).
+- [x] New Interview form: URL validation with message, "Creating interview…"
+  loading state, Start disabled until a valid knowledge source URL.
+- [x] Ack + tool call made atomic in the agent prompt; cloud agent re-PATCHed
+  (verified: tool still attached, new prompt live).
+- [x] Follow-up prompt input trimmed to a 12-message transcript tail.
 
-- [x] `POST /api/interviews/[id]/rules/[ruleId]` — confirm, edit (condition/expectedBehavior/exceptions), reopen, mark unresolved. Verified live against dev DB (incl. 404 on cross-interview IDs).
-- [x] Rebuild `app/interview/[id]/results/page.tsx` as the v3 document: sections with status stamps, conflict cards (expert vs. source side-by-side with resolution choices), unresolved notes with reopen, inline edit with save/save-and-confirm.
-- [x] Export gating: export disabled until every conflict is resolved or explicitly marked unresolved.
+### Remaining
 
-### 3.2 Scenario & rubric generation
+- [ ] Manual voice demo through the polished UI (covers the deferred Phase 2 demo).
 
-- [x] `lib/intelligence/prompts/generateScenarios.ts` — confirmed rules in; scenarios tagged normal/contrastive/boundary/adversarial (verified live: 16 scenarios, 4 per type).
-- [x] `lib/intelligence/prompts/generateRubric.ts` — criteria per rubric-graded scenario.
-- [x] `POST /api/interviews/[id]/generate` — generates + persists suite (scenarios table gained `slug`, `grader`, `criteria` columns; migration 0003).
-- [x] Unit tests with fixture rules (prompt builders + provider schemas).
+## Deferred from Phase 2/3
 
-### 3.3 Export
-
-- [x] `lib/evals/exporter.ts` — ZIP: `behavior/specification.yaml`, `evals/{normal,contrastive,boundary,adversarial}.yaml`, `graders/graders.py`, `sources/provenance.json`, `eval_config.yaml`, `README.md`.
-- [x] `GET /api/interviews/[id]/export` returning the ZIP (409 before generation).
-- [x] Golden-file tests for the export contract (`lib/evals/golden/`, ADR-5).
-
-### 3.4 Python eval runner
-
-- [x] `loader.py` — config, scenarios, and rubrics (imports RUBRICS from exported `graders/graders.py`).
-- [x] `runner.py` — POST each scenario to `target.endpoint`; YAML date objects serialized safely; target/judge errors become failed evals, not crashes.
-- [x] `graders.py` — `deterministic()` + real `rubric()` LLM judge (`EVAL_LLM_BASE_URL`/`EVAL_LLM_API_KEY`, model from `eval_config.yaml`).
-- [x] `cli.py` — `evalinterview run <dir>` group, summary output, non-zero exit on failure.
-- [x] Runner tests (8, pytest + responses, fixture suite).
-- [x] End-to-end smoke: live generate → export → `evalinterview run` against a stub agent → 6/16 with rule-referenced failures (stub is intentionally naive).
+- **Agent acknowledges but skips the tool call** (2 of 9 turns) — addressed in
+  Phase 4 via the atomic ack/tool prompt change; validate in the next voice run.
+- **Contrastive scenarios bundle two cases into one expected action** — emit two
+  linked scenario entries instead.
+- **Question appears in chat before it's spoken** — superseded by v3 design
+  (agent line renders on the SDK speech event, synced with voice).
 
 ## Known Issues (deferred from Phase 2)
 
@@ -66,8 +64,9 @@ From the Phase 3 smoke run:
 - **Question appears in chat before it's spoken** — by design (persisted with
   the webhook response; TTS lags the transcript).
 
-## Completion Criteria (Phase 3)
+## Completion Criteria (Phase 4)
 
-- Confirmed spec exports as a ZIP and `evalinterview run ./exported` passes/fails
-  against a stub agent with rule references in the output.
-- Golden-file tests green; `npm run lint && npm run typecheck && npm run test && npm run build` all pass.
+- ~~All four screens match the approved Living Spec mockups.~~ Done.
+- ~~`npm run lint && npm run typecheck && npm run test && npm run build` all pass.~~ Done (59 tests).
+- The deferred Phase 2 manual voice demo runs clean through the polished UI
+  (watch for: ack-then-tool-call atomicity, drafting shimmer, instant local echo).
