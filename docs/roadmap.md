@@ -7,7 +7,7 @@
 | Phase 0 — Scaffold & API verification | Complete |
 | Phase 1 — Core vertical slice (text input) | Complete (live-API smoke test 2026-08-10) |
 | Phase 2 — ElevenLabs voice | Code complete; loop verified live 2026-08-11. Manual demo deferred to after Phase 4 (decision 2026-08-12) |
-| Phase 3 — Review, scenario generation, export, Python runner | In progress — UI direction approved (`mockups/results-v3.html`, "Living Spec") |
+| Phase 3 — Review, scenario generation, export, Python runner | Complete (2026-08-12): review screen per Living Spec mockup, suite generation, ZIP export, `evalinterview run` — verified end to end against a stub agent |
 | Phase 4 — UI polish | Not started |
 | Phase 5 — Examples, README, launch | Not started |
 

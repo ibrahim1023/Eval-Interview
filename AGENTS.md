@@ -24,6 +24,7 @@ Core logic:
 - `lib/context/` Context.dev ingestion + local Postgres FTS retrieval over `source_chunks`
 - `lib/elevenlabs/` voice session client and agent config
 - `lib/rules/` rule lifecycle and repository
+- `lib/evals/` scenario generation and export (ZIP contract — see `docs/architecture.md` ADR-5)
 - `lib/db/` Drizzle schema and client
 - `app/` four screens + thin API route handlers
 - `eval-runner/` Python CLI: `evalinterview run ./generated-evals`
