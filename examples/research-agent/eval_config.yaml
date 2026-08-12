@@ -1,0 +1,6 @@
+agent:
+  name: Research Agent
+target:
+  endpoint: http://localhost:8000/act
+grading:
+  rubric_model: google/gemma-4-31b-it

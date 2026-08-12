@@ -9,7 +9,7 @@
 | Phase 2 — ElevenLabs voice | Code complete; loop verified live 2026-08-11. Manual demo deferred to after Phase 4 (decision 2026-08-12) |
 | Phase 3 — Review, scenario generation, export, Python runner | Complete (2026-08-12): review screen per Living Spec mockup, suite generation, ZIP export, `evalinterview run` — verified end to end against a stub agent |
 | Phase 4 — UI polish | Code complete (2026-08-12): all four screens on the Living Spec design; demo run pending |
-| Phase 5 — Examples, README, launch | Not started |
+| Phase 5 — Examples, README, launch | Examples, README, LICENSE, diagram done (2026-08-12); video, screenshots, GitHub issue prep pending |
 
 `task.md` tracks only the current phase. Git history is the authoritative
 record of completed implementation detail.

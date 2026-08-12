@@ -1,0 +1,46 @@
+spec_version: 1
+agent:
+  name: Code Review Agent
+  description: Reviews pull requests and determines whether changes are safe to merge.
+rules:
+  - id: rule-migration-safety
+    when: PR contains a destructive migration
+    expect: Require a rollback plan and a verified backup, otherwise block
+    exceptions:
+      - Hotfixes with on-call approval
+    status: confirmed
+    provenance:
+      interview_turns:
+        - turn_3
+        - turn_7
+      context_sources:
+        - handbook/migrations
+  - id: rule-hardcoded-secrets
+    when: PR adds a hardcoded credential, token, or API key
+    expect: Block and instruct the author to use the secrets manager
+    exceptions: []
+    status: confirmed
+    provenance:
+      interview_turns:
+        - turn_5
+      context_sources:
+        - security/secrets-policy
+  - id: rule-core-logic-tests
+    when: PR changes core billing logic without accompanying tests
+    expect: Request changes and ask for coverage of the changed paths
+    exceptions: []
+    status: confirmed
+    provenance:
+      interview_turns:
+        - turn_9
+      context_sources:
+        - handbook/testing
+  - id: rule-breaking-api
+    when: PR changes a public API without a deprecation notice
+    expect: Unclear — the organization has no stated policy
+    exceptions: []
+    status: unresolved
+    provenance:
+      interview_turns:
+        - turn_12
+      context_sources: []

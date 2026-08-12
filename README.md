@@ -21,62 +21,74 @@ the result into executable AI evals.
 
 ## Example
 
+One conversation:
+
 ```text
-EvalInterview:
-What changes should automatically block approval?
+EvalInterview:  What changes should automatically block approval?
+Engineer:       Any destructive migration without a rollback path.
 
-Engineer:
-Any destructive migration without a rollback path.
+                [engine retrieves handbook/migrations]
 
-Context.dev:
-The engineering guide also requires a verified backup.
-
-EvalInterview:
-Should the eval require both the rollback path
-and a verified backup?
-
-Engineer:
-Yes.
+EvalInterview:  Your handbook also requires a verified backup before
+                any destructive change. Should the eval require both
+                the rollback path and the verified backup?
+Engineer:       Yes. No verified backup, no merge.
 ```
 
-Rule discovered:
+One extracted rule:
 
 ```yaml
-id: migration_safety
-condition:
-  pull_request_contains_destructive_migration: true
-requirements:
-  - rollback_plan_present
-  - verified_backup_present
-otherwise: block
+- id: rule-migration-safety
+  when: PR contains a destructive migration
+  expect: Require a rollback plan and a verified backup, otherwise block
+  exceptions:
+    - Hotfixes with on-call approval
+  status: confirmed
+  provenance:
+    interview_turns: [turn_3, turn_7]
+    context_sources: [handbook/migrations]
 ```
 
-Generated eval:
+One generated eval:
 
 ```yaml
-id: migration_without_backup
-type: contrastive
-input:
-  pull_request:
-    migration: destructive
-    rollback_plan: true
-    verified_backup: false
-expected:
-  action: block
+- id: migration_rollback_without_backup
+  type: contrastive
+  input:
+    pull_request:
+      migration: destructive
+      rollback_plan: true
+      verified_backup: false
+  expected:
+    action: block
+  covers: [rule-migration-safety]
+  grader: rubric
 ```
+
+Full runnable suites in [`examples/`](./examples/) — code review, customer
+support, and cited research agents.
 
 ## Architecture
 
 ```text
-Next.js Application
-       │
-       ├── ElevenLabs      (voice interview)
-       ├── Context.dev     (organizational knowledge)
-       ├── Hyperfusion     (LLM reasoning)
-       └── Supabase Postgres (persistence)
+Expert ──voice──▶ ElevenLabs ──webhook──▶ Orchestrator (Next.js)
+                                              │
+                    ┌─────────────────────────┤
+                    ▼                         ▼
+              Context.dev               Hyperfusion LLM
+              (docs, policies)          (extract · classify · follow up)
+                    │                         │
+                    └───────▶ Postgres ◀──────┘
+                                  │
+                                  ▼
+                    Behavior spec ──▶ eval suite ZIP
+                                  │
+                                  ▼
+                    evalinterview run (Python CLI, runs anywhere)
 ```
 
-No microservices, no queues, no separate backend.
+No microservices, no queues, no separate backend. The voice agent is a thin
+transport; all reasoning happens server-side.
 
 ## Status
 

@@ -1,0 +1,46 @@
+spec_version: 1
+agent:
+  name: Support Agent
+  description: Handles customer refund and account requests end to end.
+rules:
+  - id: rule-refund-threshold
+    when: Refund request over $500
+    expect: Require manager sign-off before approving
+    exceptions:
+      - Fraud signals always escalate instead
+    status: confirmed
+    provenance:
+      interview_turns:
+        - turn_2
+        - turn_6
+      context_sources:
+        - helpdesk/refund-policy
+  - id: rule-identity-verification
+    when: Customer requests a change to account email, address, or payout method
+    expect: Verify identity via two factors before making the change
+    exceptions: []
+    status: confirmed
+    provenance:
+      interview_turns:
+        - turn_4
+      context_sources:
+        - helpdesk/account-security
+  - id: rule-single-retention-offer
+    when: Customer asks to cancel
+    expect: Make at most one retention offer, then process the cancellation
+    exceptions: []
+    status: confirmed
+    provenance:
+      interview_turns:
+        - turn_8
+      context_sources: []
+  - id: rule-loyalty-refund-window
+    when: Long-tenure customer requests a refund outside the standard window
+    expect: Unclear — policy and expert judgment diverged, no decision recorded
+    exceptions: []
+    status: unresolved
+    provenance:
+      interview_turns:
+        - turn_11
+      context_sources:
+        - helpdesk/refund-policy

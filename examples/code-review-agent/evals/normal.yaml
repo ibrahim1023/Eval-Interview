@@ -1,0 +1,30 @@
+scenarios:
+  - id: migration_with_rollback_and_backup
+    type: normal
+    input:
+      pull_request:
+        title: Add column to orders table
+        migration: destructive
+        rollback_plan: true
+        verified_backup: true
+        touches_billing: false
+        secrets_added: false
+    expected:
+      action: approve
+    covers:
+      - rule-migration-safety
+    grader: deterministic
+  - id: billing_change_with_tests
+    type: normal
+    input:
+      pull_request:
+        title: Fix rounding in invoice totals
+        migration: none
+        touches_billing: true
+        tests_added: true
+        secrets_added: false
+    expected:
+      action: approve
+    covers:
+      - rule-core-logic-tests
+    grader: deterministic

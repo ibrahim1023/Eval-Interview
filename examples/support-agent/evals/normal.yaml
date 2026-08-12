@@ -1,0 +1,26 @@
+scenarios:
+  - id: refund_under_threshold
+    type: normal
+    input:
+      ticket:
+        request: refund
+        amount_usd: 450
+        fraud_signals: false
+        manager_signoff: false
+    expected:
+      action: approve
+    covers:
+      - rule-refund-threshold
+    grader: deterministic
+  - id: verified_address_change
+    type: normal
+    input:
+      ticket:
+        request: change_address
+        identity_verified: true
+        factors_passed: 2
+    expected:
+      action: approve
+    covers:
+      - rule-identity-verification
+    grader: deterministic

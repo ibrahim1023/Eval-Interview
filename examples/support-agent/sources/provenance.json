@@ -1,0 +1,61 @@
+{
+  "interview_id": "example-support",
+  "agent": "Support Agent",
+  "rules": [
+    {
+      "id": "rule-refund-threshold",
+      "condition": "Refund request over $500",
+      "status": "confirmed",
+      "interview_turns": [
+        "turn_2",
+        "turn_6"
+      ],
+      "context_sources": [
+        "helpdesk/refund-policy"
+      ]
+    },
+    {
+      "id": "rule-identity-verification",
+      "condition": "Customer requests a change to account email, address, or payout method",
+      "status": "confirmed",
+      "interview_turns": [
+        "turn_4"
+      ],
+      "context_sources": [
+        "helpdesk/account-security"
+      ]
+    },
+    {
+      "id": "rule-single-retention-offer",
+      "condition": "Customer asks to cancel",
+      "status": "confirmed",
+      "interview_turns": [
+        "turn_8"
+      ],
+      "context_sources": []
+    },
+    {
+      "id": "rule-loyalty-refund-window",
+      "condition": "Long-tenure customer requests a refund outside the standard window",
+      "status": "unresolved",
+      "interview_turns": [
+        "turn_11"
+      ],
+      "context_sources": [
+        "helpdesk/refund-policy"
+      ]
+    }
+  ],
+  "evidence": [
+    {
+      "rule_id": "rule-refund-threshold",
+      "source": "helpdesk/refund-policy",
+      "relationship": "partial"
+    },
+    {
+      "rule_id": "rule-identity-verification",
+      "source": "helpdesk/account-security",
+      "relationship": "supported"
+    }
+  ]
+}

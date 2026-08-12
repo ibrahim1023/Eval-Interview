@@ -1,0 +1,59 @@
+{
+  "interview_id": "example-research",
+  "agent": "Research Agent",
+  "rules": [
+    {
+      "id": "rule-primary-sources",
+      "condition": "Making a factual claim",
+      "status": "confirmed",
+      "interview_turns": [
+        "turn_2"
+      ],
+      "context_sources": [
+        "research-handbook/sourcing"
+      ]
+    },
+    {
+      "id": "rule-independent-confirmation",
+      "condition": "A claim is contested or consequential",
+      "status": "confirmed",
+      "interview_turns": [
+        "turn_5",
+        "turn_8"
+      ],
+      "context_sources": [
+        "research-handbook/sourcing"
+      ]
+    },
+    {
+      "id": "rule-express-uncertainty",
+      "condition": "Available evidence is thin or conflicting",
+      "status": "confirmed",
+      "interview_turns": [
+        "turn_7"
+      ],
+      "context_sources": []
+    },
+    {
+      "id": "rule-preprint-handling",
+      "condition": "The only supporting evidence is a non-peer-reviewed preprint",
+      "status": "unresolved",
+      "interview_turns": [
+        "turn_10"
+      ],
+      "context_sources": []
+    }
+  ],
+  "evidence": [
+    {
+      "rule_id": "rule-primary-sources",
+      "source": "research-handbook/sourcing",
+      "relationship": "supported"
+    },
+    {
+      "rule_id": "rule-independent-confirmation",
+      "source": "research-handbook/sourcing",
+      "relationship": "partial"
+    }
+  ]
+}

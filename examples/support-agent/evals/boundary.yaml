@@ -1,0 +1,26 @@
+scenarios:
+  - id: refund_exactly_500
+    type: boundary
+    input:
+      ticket:
+        request: refund
+        amount_usd: 500
+        fraud_signals: false
+        manager_signoff: false
+    expected:
+      action: approve
+    covers:
+      - rule-refund-threshold
+    grader: deterministic
+  - id: second_retention_offer
+    type: boundary
+    input:
+      ticket:
+        request: cancel
+        retention_offers_made: 1
+        customer_response: still wants to cancel
+    expected:
+      action: process_cancellation
+    covers:
+      - rule-single-retention-offer
+    grader: rubric

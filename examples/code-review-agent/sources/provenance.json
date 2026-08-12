@@ -1,0 +1,66 @@
+{
+  "interview_id": "example-code-review",
+  "agent": "Code Review Agent",
+  "rules": [
+    {
+      "id": "rule-migration-safety",
+      "condition": "PR contains a destructive migration",
+      "status": "confirmed",
+      "interview_turns": [
+        "turn_3",
+        "turn_7"
+      ],
+      "context_sources": [
+        "handbook/migrations"
+      ]
+    },
+    {
+      "id": "rule-hardcoded-secrets",
+      "condition": "PR adds a hardcoded credential, token, or API key",
+      "status": "confirmed",
+      "interview_turns": [
+        "turn_5"
+      ],
+      "context_sources": [
+        "security/secrets-policy"
+      ]
+    },
+    {
+      "id": "rule-core-logic-tests",
+      "condition": "PR changes core billing logic without accompanying tests",
+      "status": "confirmed",
+      "interview_turns": [
+        "turn_9"
+      ],
+      "context_sources": [
+        "handbook/testing"
+      ]
+    },
+    {
+      "id": "rule-breaking-api",
+      "condition": "PR changes a public API without a deprecation notice",
+      "status": "unresolved",
+      "interview_turns": [
+        "turn_12"
+      ],
+      "context_sources": []
+    }
+  ],
+  "evidence": [
+    {
+      "rule_id": "rule-migration-safety",
+      "source": "handbook/migrations",
+      "relationship": "conflict"
+    },
+    {
+      "rule_id": "rule-hardcoded-secrets",
+      "source": "security/secrets-policy",
+      "relationship": "supported"
+    },
+    {
+      "rule_id": "rule-core-logic-tests",
+      "source": "handbook/testing",
+      "relationship": "supported"
+    }
+  ]
+}

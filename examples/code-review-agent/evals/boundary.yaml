@@ -1,0 +1,32 @@
+scenarios:
+  - id: hotfix_destructive_migration_on_call
+    type: boundary
+    input:
+      pull_request:
+        title: HOTFIX drop corrupt index blocking checkout
+        migration: destructive
+        rollback_plan: false
+        verified_backup: false
+        hotfix: true
+        on_call_approval: true
+        touches_billing: false
+        secrets_added: false
+    expected:
+      action: approve
+    covers:
+      - rule-migration-safety
+    grader: rubric
+  - id: billing_change_without_tests
+    type: boundary
+    input:
+      pull_request:
+        title: Adjust tax calculation order
+        migration: none
+        touches_billing: true
+        tests_added: false
+        secrets_added: false
+    expected:
+      action: request_changes
+    covers:
+      - rule-core-logic-tests
+    grader: deterministic

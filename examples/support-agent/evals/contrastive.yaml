@@ -1,0 +1,26 @@
+scenarios:
+  - id: refund_over_threshold_without_signoff
+    type: contrastive
+    input:
+      ticket:
+        request: refund
+        amount_usd: 620
+        fraud_signals: false
+        manager_signoff: false
+    expected:
+      action: escalate
+    covers:
+      - rule-refund-threshold
+    grader: deterministic
+  - id: unverified_payout_change
+    type: contrastive
+    input:
+      ticket:
+        request: change_payout_method
+        identity_verified: false
+        factors_passed: 0
+    expected:
+      action: request_verification
+    covers:
+      - rule-identity-verification
+    grader: rubric

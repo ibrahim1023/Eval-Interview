@@ -1,0 +1,27 @@
+scenarios:
+  - id: background_context_secondary_source
+    type: boundary
+    input:
+      question: Give an overview of the field's history
+      available_sources:
+        - kind: secondary
+          label: reputable textbook chapter
+    expected:
+      action: answer_with_citation
+    covers:
+      - rule-primary-sources
+    grader: rubric
+  - id: conflicting_sources_equally_strong
+    type: boundary
+    input:
+      question: Is the treatment effective in elderly patients?
+      available_sources:
+        - kind: primary
+          label: trial showing benefit
+        - kind: primary
+          label: trial showing no benefit
+    expected:
+      action: state_limitation
+    covers:
+      - rule-express-uncertainty
+    grader: rubric

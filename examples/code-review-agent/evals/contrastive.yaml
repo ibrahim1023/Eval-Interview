@@ -1,0 +1,30 @@
+scenarios:
+  - id: migration_rollback_without_backup
+    type: contrastive
+    input:
+      pull_request:
+        title: Drop deprecated users column
+        migration: destructive
+        rollback_plan: true
+        verified_backup: false
+        touches_billing: false
+        secrets_added: false
+    expected:
+      action: block
+    covers:
+      - rule-migration-safety
+    grader: rubric
+  - id: hardcoded_api_key
+    type: contrastive
+    input:
+      pull_request:
+        title: Integrate payments provider
+        migration: none
+        touches_billing: true
+        tests_added: true
+        secrets_added: true
+    expected:
+      action: block
+    covers:
+      - rule-hardcoded-secrets
+    grader: deterministic

@@ -1,0 +1,27 @@
+scenarios:
+  - id: claim_with_primary_source
+    type: normal
+    input:
+      question: What dose was used in the 2021 trial?
+      available_sources:
+        - kind: primary
+          label: peer-reviewed trial paper
+    expected:
+      action: answer_with_citation
+    covers:
+      - rule-primary-sources
+    grader: deterministic
+  - id: contested_claim_two_independent_sources
+    type: normal
+    input:
+      question: Does the drug reduce relapse rates?
+      available_sources:
+        - kind: primary
+          label: trial paper from manufacturer
+        - kind: primary
+          label: independent replication study
+    expected:
+      action: answer_with_citation
+    covers:
+      - rule-independent-confirmation
+    grader: deterministic
