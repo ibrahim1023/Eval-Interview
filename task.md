@@ -29,6 +29,8 @@ phase plan and history.
 - [x] Ack + tool call made atomic in the agent prompt; cloud agent re-PATCHed
   (verified: tool still attached, new prompt live).
 - [x] Follow-up prompt input trimmed to a 12-message transcript tail.
+- [x] Local-echo reconciliation made positional (post-review fix): acknowledgments
+  and paraphrased agent lines no longer stick at the bottom of the rail.
 
 ### Remaining
 

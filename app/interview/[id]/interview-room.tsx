@@ -45,6 +45,46 @@ function normalize(text: string): string {
   return text.toLowerCase().replace(/\s+/g, " ").trim();
 }
 
+// Local echoes are matched against the recent server transcript in order.
+// Substring containment covers the agent combining its acknowledgment with
+// the question in one speech event, and ASR/agent rewording between the SDK
+// transcript and what the tool call stored. Interviewer lines the server
+// never stores (acknowledgments, paraphrases) are dropped once the server's
+// response to that expert turn exists.
+function reconcileLocalTurns(turns: LocalTurn[], messages: Message[]): LocalTurn[] {
+  const server = messages
+    .slice(-8)
+    .map((m) => ({ speaker: m.speaker, content: normalize(m.content) }));
+  const confirmedAt: (number | null)[] = new Array(turns.length).fill(null);
+  let cursor = 0;
+  turns.forEach((turn, k) => {
+    const n = normalize(turn.content);
+    const idx = server.findIndex(
+      (s, j) =>
+        j >= cursor &&
+        s.speaker === turn.speaker &&
+        (s.content === n || n.includes(s.content) || s.content.includes(n)),
+    );
+    if (idx >= 0) {
+      confirmedAt[k] = idx;
+      cursor = idx + 1;
+    }
+  });
+  let lastExpertIdx = -1;
+  return turns.filter((turn, k) => {
+    const confirmed = confirmedAt[k];
+    if (confirmed !== null) {
+      if (turn.speaker === "expert") lastExpertIdx = confirmed;
+      return false;
+    }
+    return !(
+      turn.speaker === "interviewer" &&
+      lastExpertIdx >= 0 &&
+      server.some((s, j) => j > lastExpertIdx && s.speaker === "interviewer")
+    );
+  });
+}
+
 function VoiceControls({
   interviewId,
   crawlStatus,
@@ -224,13 +264,7 @@ export function InterviewRoom(props: {
       setRules(data.rules);
       setEvidence(data.evidence);
       setCrawlStatus(data.interview.crawlStatus);
-      // Drop local echoes the server has confirmed (compare against recent turns).
-      const recent = new Set(
-        (data.messages as Message[]).slice(-8).map((m) => `${m.speaker}:${normalize(m.content)}`),
-      );
-      setLocalTurns((turns) =>
-        turns.filter((t) => !recent.has(`${t.speaker}:${normalize(t.content)}`)),
-      );
+      setLocalTurns((turns) => reconcileLocalTurns(turns, data.messages as Message[]));
     }, 2500);
     return () => clearInterval(timer);
   }, [props.interviewId]);
