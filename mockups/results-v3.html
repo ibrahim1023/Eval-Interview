@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Results v3 — The Living Spec</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root {
+    --paper: #fdfcf9; --ink: #1a1a18; --ink-soft: #57534a; --ink-faint: #a39e93;
+    --accent: #2b4acb; --red: #c2410c; --red-bg: #fff4ed; --line: #e8e4da; --green: #15803d;
+  }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: var(--paper); color: var(--ink); min-height: 100vh; }
+  .serif { font-family: Charter, Georgia, "Times New Roman", serif; }
+
+  nav { padding: 14px 28px; border-bottom: 1px solid var(--line); display: flex;
+    align-items: center; justify-content: space-between; background: var(--paper);
+    position: sticky; top: 0; z-index: 10; }
+  .logo { font-weight: 650; font-size: 15px; letter-spacing: -0.02em; }
+  .nav-mid { font-size: 13px; color: var(--ink-faint); }
+  .export { background: var(--accent); color: #fff; border: none; padding: 10px 18px;
+    border-radius: 8px; font-size: 13.5px; font-weight: 550; cursor: pointer; }
+  .export:disabled { background: var(--ink-faint); cursor: not-allowed; }
+
+  .doc { max-width: 680px; margin: 0 auto; padding: 56px 28px 120px; }
+  .doc-kicker { font-size: 11px; font-weight: 650; letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--ink-faint); }
+  h1 { font-family: Charter, Georgia, serif; font-size: 34px; font-weight: 700;
+    letter-spacing: -0.01em; margin: 8px 0 4px; }
+  .doc-sub { font-size: 14px; color: var(--ink-soft); margin-bottom: 8px; }
+  .meta { font-family: ui-monospace, monospace; font-size: 12px; color: var(--ink-faint);
+    margin-bottom: 40px; padding-bottom: 24px; border-bottom: 1px solid var(--line); }
+
+  .section { position: relative; padding: 26px 0; border-bottom: 1px solid var(--line); }
+  .section:last-of-type { border-bottom: none; }
+  .sec-head { display: flex; align-items: baseline; gap: 14px; }
+  .sec-num { font-family: Charter, Georgia, serif; font-size: 17px; color: var(--ink-faint); }
+  .sec-head h3 { font-family: Charter, Georgia, serif; font-size: 20px; font-weight: 700; flex: 1; }
+  .stamp { font-size: 10px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase;
+    padding: 3px 8px; border: 1.5px solid currentColor; border-radius: 4px; transform: rotate(-2deg); }
+  .stamp.ok { color: var(--green); }
+  .stamp.prov { color: var(--ink-faint); }
+  .stamp.conflict { color: var(--red); }
+  .stamp.unres { color: #6d28d9; }
+  .body { font-size: 14.5px; line-height: 1.75; color: var(--ink-soft); margin-top: 10px; }
+  .body strong { color: var(--ink); }
+  .prov-line { margin-top: 12px; font-family: ui-monospace, monospace; font-size: 11.5px;
+    color: var(--ink-faint); }
+
+  /* Review affordances live in the margin, appear on hover */
+  .margin-actions { position: absolute; right: -170px; top: 28px; width: 150px; display: flex;
+    flex-direction: column; gap: 6px; opacity: 0.35; transition: opacity 0.15s; }
+  .section:hover .margin-actions { opacity: 1; }
+  .ma { font-size: 12px; font-weight: 550; padding: 6px 12px; border-radius: 7px;
+    border: 1px solid var(--line); background: #fff; cursor: pointer; text-align: left; color: var(--ink-soft); }
+  .ma.primary { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+
+  .conflict-note { margin-top: 14px; background: var(--red-bg); border: 1px solid #fed7c3;
+    border-radius: 10px; padding: 16px 18px; }
+  .conflict-note .title { font-size: 13px; font-weight: 650; color: #7c2d12; }
+  .conflict-note .quote { font-size: 13.5px; line-height: 1.65; color: #7c2d12; margin-top: 8px;
+    padding-left: 14px; border-left: 3px solid var(--red); font-style: italic; }
+  .conflict-note .src { font-family: ui-monospace, monospace; font-size: 11.5px; color: var(--red);
+    display: block; margin-top: 8px; font-style: normal; }
+  .choices { display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap; }
+  .choices .ma { background: #fff; border-color: #fed7c3; color: #7c2d12; }
+  .choices .ma.primary { background: var(--red); border-color: var(--red); color: #fff; }
+
+  .unres-note { margin-top: 14px; background: #f5f3ff; border: 1px solid #ddd6fe; border-radius: 10px;
+    padding: 14px 18px; font-size: 13px; line-height: 1.6; color: #5b21b6; }
+
+  .doc-footer { margin-top: 56px; padding-top: 32px; border-top: 2px solid var(--ink); }
+  .doc-footer h2 { font-family: Charter, Georgia, serif; font-size: 22px; margin-bottom: 6px; }
+  .doc-footer .sub2 { font-size: 13.5px; color: var(--ink-soft); margin-bottom: 20px; }
+  .scn-row { display: flex; gap: 20px; font-family: ui-monospace, monospace; font-size: 12.5px;
+    color: var(--ink-soft); margin-bottom: 24px; }
+  .scn-row strong { color: var(--ink); }
+  .footer-actions { display: flex; gap: 10px; align-items: center; }
+  .btn { padding: 12px 22px; border-radius: 8px; font-size: 14px; font-weight: 550; cursor: pointer; }
+  .btn.dark { background: var(--ink); color: var(--paper); border: none; }
+  .btn.ghost { background: none; border: 1px solid var(--line); color: var(--ink); }
+  .btn.ghost:disabled { opacity: 0.4; cursor: not-allowed; }
+  .gate { font-size: 12px; color: var(--red); margin-left: 4px; }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="logo">EvalInterview</div>
+  <div class="nav-mid">9 of 12 sections confirmed</div>
+  <button class="export" disabled>Export eval suite</button>
+</nav>
+
+<div class="doc">
+  <div class="doc-kicker">Behavior specification · review draft</div>
+  <h1 class="serif">Code Review Agent</h1>
+  <div class="doc-sub">Interviewed: Senior Staff Engineer &middot; 24 turns &middot; knowledge: engineering-handbook</div>
+  <div class="meta">spec_version: 1 &middot; generated: 2026-08-12 &middot; status: review</div>
+
+  <div class="section">
+    <div class="sec-head">
+      <span class="sec-num">§1</span>
+      <h3>Migration safety</h3>
+      <span class="stamp ok">Confirmed</span>
+    </div>
+    <div class="body">When a pull request contains a <strong>destructive migration</strong>, the agent must require a <strong>rollback plan</strong> and a <strong>verified backup</strong> — otherwise it blocks approval.</div>
+    <div class="prov-line">turn_03 · turn_05 · handbook/migrations</div>
+    <div class="margin-actions"><button class="ma">Edit</button></div>
+  </div>
+
+  <div class="section">
+    <div class="sec-head">
+      <span class="sec-num">§2</span>
+      <h3>Dependency upgrades</h3>
+      <span class="stamp conflict">Conflict</span>
+    </div>
+    <div class="body">When a pull request upgrades a <strong>dependency</strong>, the agent requires review for <strong>major version changes only</strong>.</div>
+    <div class="conflict-note">
+      <div class="title">Contradicts the knowledge source</div>
+      <div class="quote">&ldquo;All dependency upgrades require review, regardless of semver impact.&rdquo;
+        <span class="src">handbook/dependencies · retrieved during turn_07</span>
+      </div>
+      <div class="choices">
+        <button class="ma primary">Keep expert rule</button>
+        <button class="ma">Follow handbook</button>
+        <button class="ma">Edit</button>
+        <button class="ma">Leave unresolved</button>
+      </div>
+    </div>
+    <div class="prov-line">turn_07 · handbook/dependencies</div>
+  </div>
+
+  <div class="section">
+    <div class="sec-head">
+      <span class="sec-num">§3</span>
+      <h3>Secrets handling</h3>
+      <span class="stamp prov">Provisional</span>
+    </div>
+    <div class="body">When a pull request introduces a <strong>credential or token</strong>, the agent blocks and requires a vault reference.</div>
+    <div class="prov-line">turn_09 · no handbook evidence</div>
+    <div class="margin-actions">
+      <button class="ma primary">Confirm</button>
+      <button class="ma">Edit</button>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="sec-head">
+      <span class="sec-num">§4</span>
+      <h3>Schema compatibility</h3>
+      <span class="stamp unres">Unresolved</span>
+    </div>
+    <div class="body">Whether schema-incompatible changes auto-block or escalate.</div>
+    <div class="unres-note">The expert had no clear answer (&ldquo;honestly not sure&rdquo;, turn_22). Recorded as unresolved — excluded from generated evals, kept in the spec for the organization to answer later.</div>
+    <div class="margin-actions"><button class="ma">Reopen</button></div>
+  </div>
+
+  <div class="doc-footer">
+    <h2 class="serif">Eval suite</h2>
+    <div class="sub2">Generated from confirmed sections only. Conflicts and unresolved sections are excluded until decided.</div>
+    <div class="scn-row">
+      <span><strong>5</strong> normal</span>
+      <span><strong>5</strong> contrastive</span>
+      <span><strong>3</strong> boundary</span>
+      <span><strong>3</strong> adversarial</span>
+    </div>
+    <div class="footer-actions">
+      <button class="btn dark">Generate eval suite</button>
+      <button class="btn ghost" disabled>Export ZIP</button>
+      <span class="gate">&#9888; resolve §2 to enable export</span>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

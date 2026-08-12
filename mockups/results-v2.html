@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Results v2 — EvalInterview</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: #fafafa; color: #171717; -webkit-font-smoothing: antialiased;
+  }
+  nav {
+    padding: 14px 24px; background: #fff; border-bottom: 1px solid #e5e5e5;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .logo { font-weight: 650; font-size: 15px; letter-spacing: -0.02em; }
+  .layout { max-width: 1080px; margin: 0 auto; padding: 40px 24px 96px;
+    display: grid; grid-template-columns: 1fr 300px; gap: 32px; align-items: start; }
+  h1 { font-size: 24px; font-weight: 650; letter-spacing: -0.02em; }
+  .sub { margin-top: 6px; font-size: 14px; color: #525252; }
+
+  .progress { margin: 20px 0 28px; }
+  .progress .bar { height: 6px; background: #e5e5e5; border-radius: 3px; overflow: hidden; }
+  .progress .fill { height: 100%; width: 58%; background: #171717; border-radius: 3px; }
+  .progress .lbl { font-size: 12.5px; color: #737373; margin-top: 8px; }
+
+  .tabs { display: flex; gap: 6px; margin-bottom: 20px; }
+  .tab {
+    padding: 7px 14px; border-radius: 999px; font-size: 13px; font-weight: 500;
+    border: 1px solid #e5e5e5; background: #fff; color: #525252; cursor: pointer;
+  }
+  .tab.active { background: #171717; color: #fff; border-color: #171717; }
+  .tab .count { opacity: 0.6; margin-left: 4px; }
+
+  h2 { font-size: 12px; font-weight: 650; letter-spacing: 0.05em; text-transform: uppercase;
+    color: #737373; margin: 32px 0 14px; }
+
+  .rule { background: #fff; border: 1px solid #e5e5e5; border-radius: 12px;
+    padding: 18px 20px; margin-bottom: 12px; }
+  .rule-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+  .rule-title { font-size: 15px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+  .chip { font-size: 11px; font-weight: 650; padding: 3px 9px; border-radius: 999px; }
+  .chip.confirmed { background: #dcfce7; color: #166534; }
+  .chip.provisional { background: #f5f5f5; color: #525252; }
+  .chip.conflict { background: #fef3c7; color: #92400e; }
+  .chip.unresolved { background: #f5f3ff; color: #5b21b6; }
+  .rule-io { margin-top: 10px; font-size: 13.5px; color: #404040; line-height: 1.6; }
+  .rule-io .k { color: #737373; font-size: 12px; font-weight: 650; text-transform: uppercase;
+    letter-spacing: 0.04em; margin-right: 6px; }
+  .provenance { margin-top: 12px; padding-top: 12px; border-top: 1px dashed #e5e5e5;
+    font-size: 12px; color: #737373; font-family: ui-monospace, monospace; }
+  .rule-actions { display: flex; gap: 8px; flex-shrink: 0; }
+  .mini { font-size: 12.5px; font-weight: 500; padding: 6px 12px; border-radius: 7px;
+    border: 1px solid #e5e5e5; background: #fff; cursor: pointer; }
+  .mini.confirm { background: #171717; color: #fff; border-color: #171717; }
+
+  .conflict-card { border: 1px solid #fde68a; background: #fffbeb; border-radius: 12px;
+    padding: 18px 20px; margin-bottom: 12px; }
+  .vs { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px; }
+  .vs .side { background: #fff; border: 1px solid #fde68a; border-radius: 10px; padding: 12px 14px;
+    font-size: 13px; line-height: 1.55; color: #404040; }
+  .vs .side .who { font-size: 11px; font-weight: 650; text-transform: uppercase;
+    letter-spacing: 0.05em; color: #92400e; margin-bottom: 6px; }
+  .conflict-actions { display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap; }
+  .conflict-actions .mini { border-color: #fde68a; }
+
+  .edit-state textarea {
+    width: 100%; border: 1px solid #d4d4d4; border-radius: 8px; padding: 10px 12px;
+    font: inherit; font-size: 13.5px; color: #171717; margin-top: 8px; resize: vertical;
+  }
+
+  .rail { position: sticky; top: 24px; }
+  .panel { background: #fff; border: 1px solid #e5e5e5; border-radius: 12px; padding: 18px 20px;
+    margin-bottom: 16px; }
+  .panel h3 { font-size: 12px; font-weight: 650; letter-spacing: 0.05em; text-transform: uppercase;
+    color: #737373; margin-bottom: 14px; }
+  .stat-row { display: flex; justify-content: space-between; font-size: 13.5px;
+    padding: 6px 0; color: #404040; }
+  .stat-row .v { font-weight: 650; }
+  .scn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .scn { border: 1px solid #e5e5e5; border-radius: 10px; padding: 12px; text-align: center; }
+  .scn .n { font-size: 20px; font-weight: 650; }
+  .scn .l { font-size: 11.5px; color: #737373; margin-top: 2px; text-transform: capitalize; }
+  .btn-primary { width: 100%; background: #171717; color: #fff; border: none; padding: 12px;
+    border-radius: 8px; font-size: 14px; font-weight: 500; cursor: pointer; }
+  .btn-secondary { width: 100%; background: #fff; color: #171717; border: 1px solid #e5e5e5;
+    padding: 12px; border-radius: 8px; font-size: 14px; font-weight: 500; cursor: pointer; margin-top: 8px; }
+  .btn-secondary:disabled { opacity: 0.45; cursor: not-allowed; }
+  .gate-note { font-size: 12px; color: #92400e; margin-top: 10px; line-height: 1.5; }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="logo">EvalInterview</div>
+  <div style="font-size:13px;color:#737373">Code Review Agent &middot; interview complete</div>
+</nav>
+
+<div class="layout">
+<main>
+  <h1>Review behavior specification</h1>
+  <p class="sub">Confirm what the interview captured. Conflicts must be resolved before export.</p>
+
+  <div class="progress">
+    <div class="bar"><div class="fill"></div></div>
+    <div class="lbl">7 of 12 rules reviewed &middot; 1 conflict open &middot; 2 unresolved</div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active">Needs attention <span class="count">5</span></button>
+    <button class="tab">All <span class="count">12</span></button>
+    <button class="tab">Confirmed <span class="count">7</span></button>
+    <button class="tab">Unresolved <span class="count">2</span></button>
+  </div>
+
+  <h2>Conflicts — resolve to export</h2>
+
+  <div class="conflict-card">
+    <div class="rule-title">Dependency upgrades <span class="chip conflict">conflict</span></div>
+    <div class="vs">
+      <div class="side">
+        <div class="who">You said (turn 18)</div>
+        &ldquo;Major upgrades need a second review. Patch upgrades are fine.&rdquo;
+      </div>
+      <div class="side">
+        <div class="who">Handbook says (engineering/dependencies)</div>
+        &ldquo;All dependency upgrades require review, regardless of semver impact.&rdquo;
+      </div>
+    </div>
+    <div class="conflict-actions">
+      <button class="mini confirm">Keep my rule</button>
+      <button class="mini">Follow handbook</button>
+      <button class="mini">Edit</button>
+      <button class="mini">Leave unresolved</button>
+    </div>
+  </div>
+
+  <h2>Awaiting your review</h2>
+
+  <div class="rule">
+    <div class="rule-head">
+      <div class="rule-title">Migration safety <span class="chip provisional">provisional</span></div>
+      <div class="rule-actions">
+        <button class="mini">Edit</button>
+        <button class="mini confirm">Confirm</button>
+      </div>
+    </div>
+    <div class="rule-io"><span class="k">When</span> PR contains a destructive migration</div>
+    <div class="rule-io"><span class="k">Then</span> require rollback plan <em>and</em> verified backup, otherwise block</div>
+    <div class="provenance">turn_12, turn_18 &middot; handbook/migrations</div>
+  </div>
+
+  <div class="rule edit-state">
+    <div class="rule-head">
+      <div class="rule-title">Test coverage <span class="chip provisional">provisional</span> <span class="chip" style="background:#eff6ff;color:#1d4ed8">editing</span></div>
+    </div>
+    <div class="rule-io"><span class="k">When</span></div>
+    <textarea rows="2">PR touches core business logic</textarea>
+    <div class="rule-io" style="margin-top:8px"><span class="k">Then</span></div>
+    <textarea rows="2">must include or update tests covering the change</textarea>
+    <div class="rule-actions" style="margin-top:10px">
+      <button class="mini">Cancel</button>
+      <button class="mini confirm">Save &amp; confirm</button>
+    </div>
+    <div class="provenance">turn_07 &middot; handbook/testing</div>
+  </div>
+
+  <h2>Unresolved — excluded from evals</h2>
+
+  <div class="rule">
+    <div class="rule-head">
+      <div class="rule-title">Schema compatibility <span class="chip unresolved">unresolved</span></div>
+      <div class="rule-actions"><button class="mini">Reopen</button></div>
+    </div>
+    <div class="rule-io">The organization has no clear answer on whether schema-incompatible changes auto-block or escalate. Recorded during the interview; no eval scenarios will be generated.</div>
+    <div class="provenance">turn_22 &middot; expert: &ldquo;honestly not sure&rdquo;</div>
+  </div>
+
+  <h2>Confirmed</h2>
+
+  <div class="rule">
+    <div class="rule-head">
+      <div class="rule-title">Secrets handling <span class="chip confirmed">confirmed</span></div>
+      <div class="rule-actions"><button class="mini">Edit</button></div>
+    </div>
+    <div class="rule-io"><span class="k">When</span> PR introduces a credential or token</div>
+    <div class="rule-io"><span class="k">Then</span> block and require vault reference</div>
+    <div class="provenance">turn_09 &middot; handbook/secrets</div>
+  </div>
+</main>
+
+<aside class="rail">
+  <div class="panel">
+    <h3>Readiness</h3>
+    <div class="stat-row"><span>Rules</span><span class="v">12</span></div>
+    <div class="stat-row"><span>Confirmed</span><span class="v">7</span></div>
+    <div class="stat-row"><span>Conflicts open</span><span class="v" style="color:#d97706">1</span></div>
+    <div class="stat-row"><span>Unresolved</span><span class="v" style="color:#6d28d9">2</span></div>
+  </div>
+
+  <div class="panel">
+    <h3>Eval suite</h3>
+    <div class="scn-grid">
+      <div class="scn"><div class="n">5</div><div class="l">normal</div></div>
+      <div class="scn"><div class="n">5</div><div class="l">contrastive</div></div>
+      <div class="scn"><div class="n">3</div><div class="l">boundary</div></div>
+      <div class="scn"><div class="n">3</div><div class="l">adversarial</div></div>
+    </div>
+    <button class="btn-primary" style="margin-top:14px">Generate eval suite</button>
+    <button class="btn-secondary" disabled>Export ZIP</button>
+    <div class="gate-note">Export unlocks when all conflicts are resolved or explicitly left unresolved.</div>
+  </div>
+</aside>
+</div>
+
+</body>
+</html>

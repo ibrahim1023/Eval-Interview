@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Interview v3 — The Living Spec</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root {
+    --paper: #fdfcf9; --ink: #1a1a18; --ink-soft: #57534a; --ink-faint: #a39e93;
+    --accent: #2b4acb; --red: #c2410c; --red-bg: #fff4ed; --line: #e8e4da;
+  }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: var(--paper); color: var(--ink); height: 100vh; display: flex; flex-direction: column; }
+  .serif { font-family: Charter, Georgia, "Times New Roman", serif; }
+
+  nav { padding: 14px 28px; border-bottom: 1px solid var(--line); display: flex;
+    align-items: center; justify-content: space-between; flex-shrink: 0; background: var(--paper); }
+  .logo { font-weight: 650; font-size: 15px; letter-spacing: -0.02em; }
+  .nav-mid { font-size: 13px; color: var(--ink-faint); }
+  .finish { background: var(--ink); color: var(--paper); border: none; padding: 9px 16px;
+    border-radius: 8px; font-size: 13.5px; font-weight: 500; cursor: pointer; }
+
+  .layout { flex: 1; min-height: 0; display: grid; grid-template-columns: 380px 1fr; }
+
+  /* Left rail: the conversation, demoted to stage directions */
+  .convo { border-right: 1px solid var(--line); padding: 24px 22px 100px; overflow-y: auto;
+    background: #f7f5ef; }
+  .convo h2 { font-size: 11px; font-weight: 650; letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--ink-faint); margin-bottom: 18px; }
+  .line { margin-bottom: 16px; font-size: 13px; line-height: 1.6; color: var(--ink-soft); }
+  .line .speaker { font-size: 10.5px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
+    color: var(--ink-faint); display: block; margin-bottom: 2px; }
+  .line.you { color: var(--ink); }
+  .line.you.pending { opacity: 0.5; }
+  .line.you.pending .speaker::after { content: " · heard, processing"; color: var(--accent); }
+  .line .mark { color: var(--accent); font-weight: 650; }
+
+  /* Right: the document writing itself */
+  .doc { overflow-y: auto; padding: 48px 56px 120px; }
+  .doc-inner { max-width: 620px; margin: 0 auto; }
+  .doc-kicker { font-size: 11px; font-weight: 650; letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--ink-faint); }
+  .doc h1 { font-family: Charter, Georgia, serif; font-size: 30px; font-weight: 700;
+    letter-spacing: -0.01em; margin: 8px 0 4px; }
+  .doc .doc-sub { font-size: 13.5px; color: var(--ink-soft); margin-bottom: 36px; }
+
+  .section { position: relative; padding: 22px 0 22px 28px; border-left: 2px solid var(--line);
+    margin-bottom: 8px; animation: slidein 0.5s ease; }
+  @keyframes slidein { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+  .section .num { position: absolute; left: -2px; top: 22px; transform: translateX(-100%);
+    padding-right: 14px; font-family: Charter, Georgia, serif; font-size: 15px; color: var(--ink-faint); }
+  .section h3 { font-family: Charter, Georgia, serif; font-size: 18px; font-weight: 700; }
+  .section .body { font-size: 14px; line-height: 1.7; color: var(--ink-soft); margin-top: 6px; }
+  .section .body strong { color: var(--ink); }
+  .stamp { display: inline-block; font-size: 10px; font-weight: 800; letter-spacing: 0.1em;
+    text-transform: uppercase; padding: 3px 8px; border: 1.5px solid currentColor; border-radius: 4px;
+    transform: rotate(-2deg); margin-left: 10px; vertical-align: 2px; }
+  .stamp.prov { color: var(--ink-faint); }
+  .stamp.ok { color: #15803d; }
+  .stamp.conflict { color: var(--red); }
+
+  .margin-note { margin: 14px 0 0; background: var(--red-bg); border: 1px solid #fed7c3;
+    border-left: 3px solid var(--red); border-radius: 8px; padding: 12px 16px; font-size: 13px;
+    line-height: 1.6; color: #7c2d12; }
+  .margin-note .src { font-family: ui-monospace, monospace; font-size: 11.5px; color: var(--red);
+    display: block; margin-top: 6px; }
+
+  .prov-line { margin-top: 12px; font-family: ui-monospace, monospace; font-size: 11.5px;
+    color: var(--ink-faint); }
+
+  .section.drafting h3 { color: var(--ink-faint); }
+  .section.drafting .shimmer { height: 12px; border-radius: 6px; margin-top: 8px;
+    background: linear-gradient(90deg, #eeebe2 25%, #f7f4ec 50%, #eeebe2 75%);
+    background-size: 200% 100%; animation: shimmer 1.4s infinite; }
+  @keyframes shimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+
+  /* Voice bar */
+  footer { flex-shrink: 0; border-top: 1px solid var(--line); background: var(--paper);
+    padding: 16px 28px; display: flex; align-items: center; gap: 16px; }
+  .wave { display: flex; align-items: center; gap: 3px; height: 22px; }
+  .wave i { width: 3px; border-radius: 2px; background: var(--accent); animation: wave 1s infinite ease-in-out; }
+  .wave i:nth-child(1) { height: 8px; animation-delay: 0s; }
+  .wave i:nth-child(2) { height: 16px; animation-delay: 0.15s; }
+  .wave i:nth-child(3) { height: 22px; animation-delay: 0.3s; }
+  .wave i:nth-child(4) { height: 14px; animation-delay: 0.45s; }
+  .wave i:nth-child(5) { height: 9px; animation-delay: 0.6s; }
+  @keyframes wave { 0%, 100% { transform: scaleY(0.5); } 50% { transform: scaleY(1); } }
+  .status { font-size: 13.5px; color: var(--ink-soft); }
+  .status strong { color: var(--ink); }
+  .end-btn { margin-left: auto; background: none; color: var(--red); border: 1px solid #fed7c3;
+    padding: 9px 18px; border-radius: 8px; font-size: 13.5px; font-weight: 500; cursor: pointer; }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="logo">EvalInterview</div>
+  <div class="nav-mid">Code Review Agent &middot; interviewing Senior Staff Engineer</div>
+  <button class="finish">Finish &amp; review</button>
+</nav>
+
+<div class="layout">
+  <aside class="convo">
+    <h2>Conversation</h2>
+    <div class="line"><span class="speaker">Interviewer</span>What changes should automatically block approval?</div>
+    <div class="line you"><span class="speaker">You</span>Any destructive migration without a rollback path.</div>
+    <div class="line"><span class="speaker">Interviewer</span>The handbook also requires a verified backup — should the eval require both?</div>
+    <div class="line you"><span class="speaker">You</span>Yes, both.</div>
+    <div class="line"><span class="speaker">Interviewer</span>And for dependency upgrades — review all of them, or just major ones?</div>
+    <div class="line you pending"><span class="speaker">You</span>Only major ones, patches are fine.</div>
+  </aside>
+
+  <main class="doc">
+    <div class="doc-inner">
+      <div class="doc-kicker">Behavior specification · drafting live</div>
+      <h1 class="serif">Code Review Agent</h1>
+      <div class="doc-sub">Sections appear as the interview uncovers them. Provenance is attached to every line.</div>
+
+      <div class="section">
+        <span class="num">§1</span>
+        <h3>Migration safety <span class="stamp ok">Confirmed</span></h3>
+        <div class="body">When a pull request contains a <strong>destructive migration</strong>, the agent must require a <strong>rollback plan</strong> and a <strong>verified backup</strong> — otherwise it blocks approval.</div>
+        <div class="prov-line">turn_03 · turn_05 · handbook/migrations</div>
+      </div>
+
+      <div class="section" style="border-left-color: var(--red)">
+        <span class="num">§2</span>
+        <h3>Dependency upgrades <span class="stamp conflict">Conflict</span></h3>
+        <div class="body">When a pull request upgrades a <strong>dependency</strong>, the agent requires review for <strong>major version changes only</strong>.</div>
+        <div class="margin-note">
+          <strong>Contradicts the handbook.</strong> engineering/dependencies states: &ldquo;All dependency upgrades require review, regardless of semver impact.&rdquo; The interviewer is asking the expert to resolve this now.
+          <span class="src">evidence: handbook/dependencies · confidence: high</span>
+        </div>
+        <div class="prov-line">turn_07 · handbook/dependencies</div>
+      </div>
+
+      <div class="section">
+        <span class="num">§3</span>
+        <h3>Secrets handling <span class="stamp prov">Provisional</span></h3>
+        <div class="body">When a pull request introduces a <strong>credential or token</strong>, the agent blocks and requires a vault reference.</div>
+        <div class="prov-line">turn_09 · no handbook evidence yet</div>
+      </div>
+
+      <div class="section drafting">
+        <span class="num">§4</span>
+        <h3 class="serif">Drafting…</h3>
+        <div class="shimmer" style="width: 82%"></div>
+        <div class="shimmer" style="width: 64%"></div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<footer>
+  <span class="wave"><i></i><i></i><i></i><i></i><i></i></span>
+  <span class="status"><strong>Listening</strong> — the spec updates as you speak</span>
+  <button class="end-btn">End interview</button>
+</footer>
+
+</body>
+</html>
