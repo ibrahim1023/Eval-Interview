@@ -21,6 +21,11 @@ type Evidence = {
   relationship: "supported" | "conflict" | "partial" | "new_area";
 };
 
+type Scenario = {
+  id: string;
+  type: "normal" | "contrastive" | "boundary" | "adversarial";
+};
+
 const STAMP: Record<Rule["status"], { label: string; className: string }> = {
   confirmed: { label: "Confirmed", className: "text-green-700 border-green-700" },
   provisional: { label: "Provisional", className: "text-neutral-400 border-neutral-400" },
@@ -34,14 +39,27 @@ export function ReviewDocument(props: {
   expertRole: string;
   rules: Rule[];
   evidence: Evidence[];
+  scenarios: Scenario[];
 }) {
   const router = useRouter();
   const [editingId, setEditingId] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [generating, setGenerating] = useState(false);
 
   const reviewed = props.rules.filter((r) => r.status !== "provisional").length;
   const openConflicts = props.rules.filter((r) => r.status === "conflict").length;
-  const exportReady = openConflicts === 0;
+  const confirmedCount = props.rules.filter((r) => r.status === "confirmed").length;
+  const exportReady = openConflicts === 0 && props.scenarios.length > 0;
+
+  async function generate() {
+    setGenerating(true);
+    try {
+      await fetch(`/api/interviews/${props.interviewId}/generate`, { method: "POST" });
+      router.refresh();
+    } finally {
+      setGenerating(false);
+    }
+  }
 
   async function act(ruleId: string, body: Record<string, unknown>) {
     setBusyId(ruleId);
@@ -67,13 +85,22 @@ export function ReviewDocument(props: {
         <span className="text-[13px] text-neutral-400">
           {reviewed} of {props.rules.length} sections reviewed
         </span>
-        <button
-          disabled={!exportReady}
-          title={exportReady ? undefined : "Resolve all conflicts to enable export"}
-          className="rounded-lg bg-[#2b4acb] px-4 py-2.5 text-[13.5px] font-medium text-white disabled:cursor-not-allowed disabled:bg-neutral-300"
-        >
-          Export eval suite
-        </button>
+        {exportReady ? (
+          <a
+            href={`/api/interviews/${props.interviewId}/export`}
+            className="rounded-lg bg-[#2b4acb] px-4 py-2.5 text-[13.5px] font-medium text-white"
+          >
+            Export eval suite
+          </a>
+        ) : (
+          <button
+            disabled
+            title="Resolve all conflicts and generate the suite to enable export"
+            className="cursor-not-allowed rounded-lg bg-neutral-300 px-4 py-2.5 text-[13.5px] font-medium text-white"
+          >
+            Export eval suite
+          </button>
+        )}
       </nav>
 
       <div className="mx-auto max-w-[680px] px-7 pt-14 pb-28">
@@ -111,12 +138,37 @@ export function ReviewDocument(props: {
             Generated from confirmed sections only. Conflicts and unresolved sections are excluded
             until decided.
           </p>
-          {!exportReady && (
-            <p className="text-xs text-orange-700">
-              ⚠ {openConflicts} open conflict{openConflicts === 1 ? "" : "s"} — resolve or leave
-              unresolved to enable export.
-            </p>
+          {props.scenarios.length > 0 && (
+            <div className="mb-6 flex gap-5 font-mono text-[12.5px] text-neutral-500">
+              {(["normal", "contrastive", "boundary", "adversarial"] as const).map((t) => (
+                <span key={t}>
+                  <strong className="text-neutral-900">
+                    {props.scenarios.filter((s) => s.type === t).length}
+                  </strong>{" "}
+                  {t}
+                </span>
+              ))}
+            </div>
           )}
+          <div className="flex items-center gap-2.5">
+            <button
+              onClick={generate}
+              disabled={generating || confirmedCount === 0}
+              className="rounded-lg bg-neutral-900 px-5 py-3 text-sm font-medium text-white disabled:opacity-50"
+            >
+              {generating
+                ? "Generating…"
+                : props.scenarios.length > 0
+                  ? "Regenerate eval suite"
+                  : "Generate eval suite"}
+            </button>
+            {!exportReady && openConflicts > 0 && (
+              <span className="text-xs text-orange-700">
+                ⚠ {openConflicts} open conflict{openConflicts === 1 ? "" : "s"} — resolve or leave
+                unresolved to enable export.
+              </span>
+            )}
+          </div>
         </div>
       </div>
     </div>

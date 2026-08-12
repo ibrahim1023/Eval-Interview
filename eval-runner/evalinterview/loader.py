@@ -74,6 +74,17 @@ def load_scenarios(root: Path) -> list[Scenario]:
 
 
 def load_rubrics(root: Path) -> dict[str, Rubric]:
-    # Rubrics live in graders/graders.py as RUBRICS dict in Phase 3.
-    # For the skeleton we just return an empty mapping.
-    return {}
+    """Load rubric criteria from the exported graders/graders.py RUBRICS dict."""
+    graders_file = root / "graders" / "graders.py"
+    if not graders_file.exists():
+        return {}
+    import importlib.util
+
+    spec = importlib.util.spec_from_file_location("exported_graders", graders_file)
+    if spec is None or spec.loader is None:
+        return {}
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    raw = getattr(module, "RUBRICS", {})
+    return {scenario_id: Rubric(scenario_id=scenario_id, criteria=list(criteria))
+            for scenario_id, criteria in raw.items()}

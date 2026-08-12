@@ -6,22 +6,28 @@ from pathlib import Path
 
 import click
 
-from .loader import load_config, load_scenarios
+from .loader import load_config, load_rubrics, load_scenarios
 from .runner import run_suite
 
 
-@click.command()
+@click.group()
+def main() -> None:
+    """EvalInterview eval runner."""
+
+
+@main.command()
 @click.argument("suite_dir", type=click.Path(exists=True, file_okay=False, path_type=Path))
 @click.option("--verbose", "-v", is_flag=True, help="Show details for every eval.")
-def main(suite_dir: Path, verbose: bool) -> None:
+def run(suite_dir: Path, verbose: bool) -> None:
     """Run an exported EvalInterview suite against an HTTP agent."""
     config = load_config(suite_dir)
     scenarios = load_scenarios(suite_dir)
+    rubrics = load_rubrics(suite_dir)
 
     click.echo(config.agent_name)
     click.echo()
 
-    results = run_suite(scenarios, config)
+    results = run_suite(scenarios, config, rubrics)
     passed = sum(1 for r in results if r.passed)
     total = len(results)
 
@@ -31,7 +37,8 @@ def main(suite_dir: Path, verbose: bool) -> None:
     failures = [r for r in results if not r.passed]
     for failure in failures:
         click.echo(f"FAIL {failure.scenario_id}")
-        click.echo(f"Scenario:  {failure.scenario_id}")
+        if failure.error:
+            click.echo(f"Error:     {failure.error}")
         click.echo(f"Expected:  {failure.expected}")
         click.echo(f"Actual:    {failure.actual}")
         click.echo(f"Rules:     {', '.join(failure.rule_ids)}")

@@ -1,0 +1,11 @@
+scenarios:
+  - id: boundary_block
+    type: boundary
+    input:
+      refund_request:
+        days_since_purchase: 31
+    expected:
+      action: block
+    covers:
+      - rule-1
+    grader: rubric

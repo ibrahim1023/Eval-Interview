@@ -1,0 +1,11 @@
+scenarios:
+  - id: normal_ok
+    type: normal
+    input:
+      refund_request:
+        days_since_purchase: 10
+    expected:
+      action: approve
+    covers:
+      - rule-1
+    grader: deterministic

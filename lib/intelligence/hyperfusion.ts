@@ -3,11 +3,14 @@ import type { IntelligenceProvider } from "./provider";
 import {
   evidenceClassificationSchema,
   followUpSchema,
+  generatedScenarioSchema,
   provisionalRuleSchema,
 } from "./provider";
 import { buildExtractRulePrompt } from "./prompts/extractRule";
 import { buildClassifyEvidencePrompt } from "./prompts/classifyEvidence";
 import { buildFollowUpPrompt } from "./prompts/generateFollowUp";
+import { buildGenerateScenariosPrompt } from "./prompts/generateScenarios";
+import { buildGenerateRubricPrompt } from "./prompts/generateRubric";
 
 // gemma-4-31b-it answers structured prompts in ~1s vs ~9s for gpt-oss-120b
 // (verified 2026-08-11); voice turns need that latency. Override via
@@ -111,6 +114,30 @@ export function createHyperfusionProvider(): IntelligenceProvider {
           { role: "user", content: user },
         ],
         0.4,
+      );
+    },
+
+    async generateScenarios(input) {
+      const { system, user } = buildGenerateScenariosPrompt(input);
+      return callStructured(
+        z.object({ scenarios: z.array(generatedScenarioSchema) }),
+        [
+          { role: "system", content: system },
+          { role: "user", content: user },
+        ],
+        0.5,
+      );
+    },
+
+    async generateRubric(input) {
+      const { system, user } = buildGenerateRubricPrompt(input);
+      return callStructured(
+        z.object({ criteria: z.array(z.string()).min(1) }),
+        [
+          { role: "system", content: system },
+          { role: "user", content: user },
+        ],
+        0.2,
       );
     },
   };

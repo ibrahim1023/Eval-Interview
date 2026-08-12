@@ -1,0 +1,13 @@
+scenarios:
+  - id: normal_migration_with_rollback
+    type: normal
+    input:
+      pull_request:
+        migration: destructive
+        rollback_plan: true
+        verified_backup: true
+    expected:
+      action: approve
+    covers:
+      - rule-1
+    grader: deterministic

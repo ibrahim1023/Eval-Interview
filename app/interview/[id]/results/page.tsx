@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { getInterview } from "@/lib/interview";
 import { listEvidence, listRules } from "@/lib/rules/repository";
+import { listScenarios } from "@/lib/evals/store";
 import { ReviewDocument } from "./review-document";
 
 export default async function ResultsPage({
@@ -12,7 +13,11 @@ export default async function ResultsPage({
   const interview = await getInterview(id);
   if (!interview) notFound();
 
-  const [ruleRows, evidenceRows] = await Promise.all([listRules(id), listEvidence(id)]);
+  const [ruleRows, evidenceRows, scenarioRows] = await Promise.all([
+    listRules(id),
+    listEvidence(id),
+    listScenarios(id),
+  ]);
 
   return (
     <ReviewDocument
@@ -21,6 +26,7 @@ export default async function ResultsPage({
       expertRole={interview.expertRole}
       rules={ruleRows}
       evidence={evidenceRows}
+      scenarios={scenarioRows}
     />
   );
 }

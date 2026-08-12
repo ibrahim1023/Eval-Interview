@@ -38,6 +38,18 @@ export type RuleSummary = {
   status: "provisional" | "confirmed" | "conflict" | "unresolved";
 };
 
+export const scenarioTypes = ["normal", "contrastive", "boundary", "adversarial"] as const;
+
+export const generatedScenarioSchema = z.object({
+  id: z.string(),
+  type: z.enum(scenarioTypes),
+  input: z.record(z.string(), z.unknown()),
+  expectedAction: z.string(),
+  grader: z.enum(["deterministic", "rubric"]).default("deterministic"),
+  ruleIds: z.array(z.string()),
+});
+export type GeneratedScenario = z.infer<typeof generatedScenarioSchema>;
+
 export type EvidenceInput = {
   source: string;
   title: string;
@@ -67,4 +79,15 @@ export interface IntelligenceProvider {
     }[];
     coverageGaps: string[];
   }): Promise<FollowUp>;
+
+  generateScenarios(input: {
+    agentDescription: string;
+    rules: { id: string; condition: string; expectedBehavior: string; exceptions: string[] }[];
+  }): Promise<{ scenarios: GeneratedScenario[] }>;
+
+  generateRubric(input: {
+    scenario: GeneratedScenario;
+    ruleCondition: string;
+    expectedBehavior: string;
+  }): Promise<{ criteria: string[] }>;
 }

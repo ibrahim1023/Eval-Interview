@@ -56,6 +56,8 @@ function makeFakeDeps(overrides: Partial<{
       strategy: "conflict" as const,
       abandonRuleIds: [] as string[],
     })),
+    generateScenarios: vi.fn(async () => ({ scenarios: [] })),
+    generateRubric: vi.fn(async () => ({ criteria: ["criterion"] })),
   };
 
   const deps: OrchestratorDeps = {

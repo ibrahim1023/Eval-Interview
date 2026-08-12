@@ -1,0 +1,26 @@
+spec_version: 1
+agent:
+  name: Code Review Agent
+  description: Reviews pull requests.
+rules:
+  - id: rule-1
+    when: PR contains a destructive migration
+    expect: Require rollback plan and verified backup, otherwise block
+    exceptions:
+      - Hotfixes with on-call approval
+    status: confirmed
+    provenance:
+      interview_turns:
+        - turn_3
+        - turn_5
+      context_sources:
+        - handbook/migrations
+  - id: rule-2
+    when: Schema compatibility unclear
+    expect: Block or escalate
+    exceptions: []
+    status: unresolved
+    provenance:
+      interview_turns:
+        - turn_9
+      context_sources: []

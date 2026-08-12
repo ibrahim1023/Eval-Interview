@@ -1,0 +1,13 @@
+scenarios:
+  - id: boundary_exactly_at_threshold
+    type: boundary
+    input:
+      pull_request:
+        migration: destructive
+        rollback_plan: true
+        verified_backup: false
+    expected:
+      action: block
+    covers:
+      - rule-1
+    grader: rubric

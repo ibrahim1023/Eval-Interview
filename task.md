@@ -25,25 +25,36 @@ See `docs/roadmap.md` for the full phase plan and history.
 
 ### 3.2 Scenario & rubric generation
 
-- [ ] `lib/intelligence/prompts/generateScenarios.ts` — input: confirmed rules; output: scenarios tagged normal/contrastive/boundary/adversarial (min 4 per type, 10–20 total).
-- [ ] `lib/intelligence/prompts/generateRubric.ts`.
-- [ ] Unit tests with fixture rules asserting coverage and type distribution.
+- [x] `lib/intelligence/prompts/generateScenarios.ts` — confirmed rules in; scenarios tagged normal/contrastive/boundary/adversarial (verified live: 16 scenarios, 4 per type).
+- [x] `lib/intelligence/prompts/generateRubric.ts` — criteria per rubric-graded scenario.
+- [x] `POST /api/interviews/[id]/generate` — generates + persists suite (scenarios table gained `slug`, `grader`, `criteria` columns; migration 0003).
+- [x] Unit tests with fixture rules (prompt builders + provider schemas).
 
 ### 3.3 Export
 
-- [ ] `lib/evals/exporter.ts` — ZIP: `behavior/specification.yaml`, `evals/{normal,contrastive,boundary,adversarial}.yaml`, `graders/graders.py`, `sources/provenance.json`, `eval_config.yaml`, `README.md`.
-- [ ] `GET /api/interviews/[id]/export` returning the ZIP.
-- [ ] Golden-file tests for exported YAML/JSON (public contract — see `docs/architecture.md` ADR-5).
+- [x] `lib/evals/exporter.ts` — ZIP: `behavior/specification.yaml`, `evals/{normal,contrastive,boundary,adversarial}.yaml`, `graders/graders.py`, `sources/provenance.json`, `eval_config.yaml`, `README.md`.
+- [x] `GET /api/interviews/[id]/export` returning the ZIP (409 before generation).
+- [x] Golden-file tests for the export contract (`lib/evals/golden/`, ADR-5).
 
 ### 3.4 Python eval runner
 
-- [ ] `evalinterview/loader.py` — load + validate YAMLs.
-- [ ] `evalinterview/runner.py` — POST each scenario to `target.endpoint`, receive `{ action }`.
-- [ ] `evalinterview/graders.py` — `deterministic()` and `rubric()`.
-- [ ] `evalinterview/cli.py` — `run` command, summary output, non-zero exit on failure.
-- [ ] Runner tests against a fake HTTP endpoint; smoke test with an exported suite.
+- [x] `loader.py` — config, scenarios, and rubrics (imports RUBRICS from exported `graders/graders.py`).
+- [x] `runner.py` — POST each scenario to `target.endpoint`; YAML date objects serialized safely; target/judge errors become failed evals, not crashes.
+- [x] `graders.py` — `deterministic()` + real `rubric()` LLM judge (`EVAL_LLM_BASE_URL`/`EVAL_LLM_API_KEY`, model from `eval_config.yaml`).
+- [x] `cli.py` — `evalinterview run <dir>` group, summary output, non-zero exit on failure.
+- [x] Runner tests (8, pytest + responses, fixture suite).
+- [x] End-to-end smoke: live generate → export → `evalinterview run` against a stub agent → 6/16 with rule-referenced failures (stub is intentionally naive).
 
 ## Known Issues (deferred from Phase 2)
+
+From the Phase 3 smoke run:
+
+- **Contrastive scenarios bundle two cases into one expected action**
+  ("approve scenario_a and deny scenario_b"), which deterministic grading
+  can't check. Fix direction: emit contrastives as two linked scenario entries
+  with separate expected actions.
+- **Scenario inputs are LLM-invented shapes** (dates as YAML date objects
+  surfaced this). Runner handles it, but a stricter input contract would help.
 
 - **Agent acknowledges but skips the tool call** (2 of 9 turns, 2026-08-11 run):
   make ack + tool call atomic in the prompt; if it persists, bump the agent LLM.

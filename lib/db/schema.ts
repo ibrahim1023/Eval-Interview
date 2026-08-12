@@ -88,8 +88,13 @@ export const scenarios = pgTable(
       .notNull()
       .references(() => interviews.id, { onDelete: "cascade" }),
     type: text("type", { enum: ["normal", "contrastive", "boundary", "adversarial"] }).notNull(),
+    slug: text("slug").notNull().default(""),
     input: jsonb("input").notNull(),
     expectedBehavior: text("expected_behavior").notNull(),
+    grader: text("grader", { enum: ["deterministic", "rubric"] })
+      .notNull()
+      .default("deterministic"),
+    criteria: text("criteria").array().notNull().default([]),
     ruleIds: uuid("rule_ids").array().notNull(),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },

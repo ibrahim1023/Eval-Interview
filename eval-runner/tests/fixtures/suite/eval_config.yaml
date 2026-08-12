@@ -1,0 +1,6 @@
+agent:
+  name: Refund Copilot
+target:
+  endpoint: http://agent-under-test.local/act
+grading:
+  rubric_model: google/gemma-4-31b-it
