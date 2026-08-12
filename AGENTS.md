@@ -94,8 +94,10 @@ npm run build
 
 Python runner changes must also be verified with the relevant Python tests or
 an exported-suite smoke test. Commit no secrets; update `.env.example` if env
-vars change. Update `task.md` in the same commit as the work it tracks, and
-`README.md` if project status, setup, or major features change.
+vars change. Update `task.md` in the same commit as the work it tracks. Keep
+`README.md` free of implementation progress — it is human-facing product
+documentation; status lives in `docs/roadmap.md`, current work in `task.md`.
+Update `README.md` only when setup or usage instructions change.
 
 ## After Finishing a Phase
 

@@ -80,13 +80,9 @@ No microservices, no queues, no separate backend.
 
 ## Status
 
-This repository is under active development. The core loop is complete end to
-end: voice interviews (ElevenLabs) drive adaptive rule extraction with
-Context.dev evidence, rules are reviewed on a Living Spec-style results screen,
-and confirmed specs export as executable eval suites that run standalone with
-`evalinterview run`. Remaining: UI polish (Phase 4) and launch prep (Phase 5).
-See [`task.md`](./task.md) for current work and [`docs/`](./docs/) for
-architecture, data model, and integration contracts.
+This repository is under active development. For roadmap and implementation
+status, see [`docs/roadmap.md`](./docs/roadmap.md); for architecture and
+integration contracts, see [`docs/`](./docs/).
 
 ## Setup
 
