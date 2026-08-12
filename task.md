@@ -19,9 +19,9 @@ See `docs/roadmap.md` for the full phase plan and history.
 
 ### 3.1 Review screen (per mockups/results-v3.html)
 
-- [ ] `POST /api/interviews/[id]/rules/[ruleId]` — confirm, edit (condition/expectedBehavior/exceptions), reopen, mark unresolved.
-- [ ] Rebuild `app/interview/[id]/results/page.tsx` as the v3 document: sections with status stamps, margin actions, conflict cards (expert vs. source side-by-side with resolution choices), unresolved notes with reopen.
-- [ ] Export gating: export disabled until every conflict is resolved or explicitly marked unresolved.
+- [x] `POST /api/interviews/[id]/rules/[ruleId]` — confirm, edit (condition/expectedBehavior/exceptions), reopen, mark unresolved. Verified live against dev DB (incl. 404 on cross-interview IDs).
+- [x] Rebuild `app/interview/[id]/results/page.tsx` as the v3 document: sections with status stamps, conflict cards (expert vs. source side-by-side with resolution choices), unresolved notes with reopen, inline edit with save/save-and-confirm.
+- [x] Export gating: export disabled until every conflict is resolved or explicitly marked unresolved.
 
 ### 3.2 Scenario & rubric generation
 
