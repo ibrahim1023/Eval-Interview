@@ -2,7 +2,7 @@ import Link from "next/link";
 
 export default function Landing() {
   return (
-    <div className="min-h-screen bg-[#fdfcf9] text-neutral-900">
+    <div className="min-h-screen bg-paper text-neutral-900">
       <nav className="mx-auto flex max-w-5xl items-center justify-between px-6 py-5">
         <span className="text-[17px] font-semibold tracking-tight">EvalInterview</span>
         <Link
@@ -55,7 +55,7 @@ export default function Landing() {
         ].map((step) => (
           <div
             key={step.n}
-            className="flex gap-6 border-t border-[#e8e4da] py-7 last:border-b"
+            className="flex gap-6 border-t border-hairline py-7 last:border-b"
           >
             <span className="pt-0.5 font-serif text-[15px] text-neutral-400">{step.n}</span>
             <div>

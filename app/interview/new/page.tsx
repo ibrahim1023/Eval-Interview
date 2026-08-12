@@ -2,7 +2,7 @@ import { NewInterviewForm } from "./new-interview-form";
 
 export default function NewInterviewPage() {
   return (
-    <div className="min-h-screen bg-[#fdfcf9]">
+    <div className="min-h-screen bg-paper">
       <nav className="mx-auto max-w-5xl px-6 py-5">
         <span className="text-[15px] font-semibold tracking-tight">EvalInterview</span>
       </nav>

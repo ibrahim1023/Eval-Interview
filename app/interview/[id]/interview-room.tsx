@@ -180,7 +180,7 @@ function VoiceControls({
         {[8, 16, 22, 14, 9].map((h, i) => (
           <i
             key={i}
-            className={`w-[3px] rounded-sm ${live ? "animate-pulse bg-[#2b4acb]" : "bg-neutral-300"}`}
+            className={`w-[3px] rounded-sm ${live ? "animate-pulse bg-signal" : "bg-neutral-300"}`}
             style={{ height: h, animationDelay: `${i * 0.15}s` }}
           />
         ))}
@@ -290,8 +290,8 @@ export function InterviewRoom(props: {
   );
 
   return (
-    <div className="flex h-screen flex-col bg-[#fdfcf9] text-neutral-900">
-      <nav className="flex shrink-0 items-center justify-between border-b border-[#e8e4da] px-7 py-3.5">
+    <div className="flex h-screen flex-col bg-paper text-neutral-900">
+      <nav className="flex shrink-0 items-center justify-between border-b border-hairline px-7 py-3.5">
         <span className="text-[15px] font-semibold tracking-tight">EvalInterview</span>
         <span className="text-[13px] text-neutral-400">
           {props.agentName} · interviewing {props.expertRole}
@@ -318,7 +318,7 @@ export function InterviewRoom(props: {
         />
 
         <div className="grid min-h-0 flex-1 grid-cols-[380px_1fr]">
-          <aside className="overflow-y-auto border-r border-[#e8e4da] bg-[#f7f5ef] px-6 pt-6 pb-24">
+          <aside className="overflow-y-auto border-r border-hairline bg-paper-rail px-6 pt-6 pb-24">
             <h2 className="mb-4 text-[11px] font-semibold tracking-[0.08em] text-neutral-400 uppercase">
               Conversation
             </h2>
@@ -336,7 +336,7 @@ export function InterviewRoom(props: {
               >
                 <span className="mb-0.5 block text-[10.5px] font-bold tracking-[0.06em] text-neutral-400 uppercase">
                   {t.speaker === "expert" ? "You" : "Interviewer"}
-                  {t.pending && <span className="text-[#2b4acb]"> · heard, processing</span>}
+                  {t.pending && <span className="text-signal"> · heard, processing</span>}
                 </span>
                 {t.content}
               </div>
@@ -373,7 +373,7 @@ export function InterviewRoom(props: {
                   <section
                     key={rule.id}
                     className={`relative mb-2 border-l-2 py-5 pl-7 ${
-                      rule.status === "conflict" ? "border-orange-700" : "border-[#e8e4da]"
+                      rule.status === "conflict" ? "border-orange-700" : "border-hairline"
                     }`}
                   >
                     <span className="absolute top-5 -left-0 -translate-x-full pr-3.5 font-serif text-[15px] text-neutral-400">
@@ -410,13 +410,13 @@ export function InterviewRoom(props: {
               })}
 
               {engineWorking && (
-                <section className="relative border-l-2 border-[#e8e4da] py-5 pl-7">
+                <section className="relative border-l-2 border-hairline py-5 pl-7">
                   <span className="absolute top-5 -left-0 -translate-x-full pr-3.5 font-serif text-[15px] text-neutral-400">
                     §{sortedRules.length + 1}
                   </span>
                   <h3 className="font-serif text-lg font-bold text-neutral-400">Drafting…</h3>
-                  <div className="mt-2 h-3 w-4/5 animate-pulse rounded-md bg-[#eeebe2]" />
-                  <div className="mt-2 h-3 w-3/5 animate-pulse rounded-md bg-[#eeebe2]" />
+                  <div className="mt-2 h-3 w-4/5 animate-pulse rounded-md bg-shimmer" />
+                  <div className="mt-2 h-3 w-3/5 animate-pulse rounded-md bg-shimmer" />
                 </section>
               )}
               <div ref={docBottomRef} />
@@ -424,7 +424,7 @@ export function InterviewRoom(props: {
           </main>
         </div>
 
-        <footer className="flex shrink-0 items-center gap-4 border-t border-[#e8e4da] px-7 py-4">
+        <footer className="flex shrink-0 items-center gap-4 border-t border-hairline px-7 py-4">
           <VoiceControls interviewId={props.interviewId} crawlStatus={crawlStatus} />
         </footer>
       </ConversationProvider>

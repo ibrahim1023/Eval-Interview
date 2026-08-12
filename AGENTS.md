@@ -59,6 +59,7 @@ console JSON editor for this shape; its internal schema is unreliable.
 - Keep persistence minimal. Core tables are `interviews`, `messages`, `rules`, `evidence`, `scenarios`, plus `source_chunks` for retrieved knowledge. Do not add persistent entities without a concrete product requirement.
 - Scenario YAML and behavior-spec YAML are public contracts. Changing them is a breaking change.
 - Keep the UI to the four spec'd screens: Landing, New Interview, Interview, Results.
+- All UI follows `DESIGN.md` (the Living Spec design contract). Use its tokens (`bg-paper`, `bg-paper-rail`, `border-hairline`, `bg-shimmer`, `bg-signal`/`text-signal` from `app/globals.css`) — never hardcode hex values in components.
 - Match the surrounding style. Compact code; no speculative abstractions.
 
 ## Anti-Slop Rules

@@ -79,8 +79,8 @@ export function ReviewDocument(props: {
   }
 
   return (
-    <div className="min-h-screen bg-[#fdfcf9] text-neutral-900">
-      <nav className="sticky top-0 z-10 flex items-center justify-between border-b border-[#e8e4da] bg-[#fdfcf9] px-7 py-3.5">
+    <div className="min-h-screen bg-paper text-neutral-900">
+      <nav className="sticky top-0 z-10 flex items-center justify-between border-b border-hairline bg-paper px-7 py-3.5">
         <span className="text-[15px] font-semibold tracking-tight">EvalInterview</span>
         <span className="text-[13px] text-neutral-400">
           {reviewed} of {props.rules.length} sections reviewed
@@ -88,7 +88,7 @@ export function ReviewDocument(props: {
         {exportReady ? (
           <a
             href={`/api/interviews/${props.interviewId}/export`}
-            className="rounded-lg bg-[#2b4acb] px-4 py-2.5 text-[13.5px] font-medium text-white"
+            className="rounded-lg bg-signal px-4 py-2.5 text-[13.5px] font-medium text-white"
           >
             Export eval suite
           </a>
@@ -112,7 +112,7 @@ export function ReviewDocument(props: {
           Interviewed: {props.expertRole} · knowledge:{" "}
           {props.evidence[0]?.source ?? "none retrieved"}
         </p>
-        <div className="mt-2 mb-10 border-b border-[#e8e4da] pb-6 font-mono text-xs text-neutral-400">
+        <div className="mt-2 mb-10 border-b border-hairline pb-6 font-mono text-xs text-neutral-400">
           spec_version: 1 · status: review
         </div>
 
@@ -190,7 +190,7 @@ function Section(props: {
   const provenance = [...rule.interviewSources, ...rule.contextSources].join(" · ") || "none";
 
   return (
-    <section className="relative border-b border-[#e8e4da] py-7">
+    <section className="relative border-b border-hairline py-7">
       <div className="flex items-baseline gap-3.5">
         <span className="font-serif text-[17px] text-neutral-400">§{props.index}</span>
         <h3 className="flex-1 font-serif text-xl font-bold">{rule.condition}</h3>
@@ -351,7 +351,7 @@ function ActionButton(props: {
       : "bg-neutral-900 text-white"
     : props.tone === "red"
       ? "border border-orange-200 bg-white text-orange-900"
-      : "border border-[#e8e4da] bg-white text-neutral-600";
+      : "border border-hairline bg-white text-neutral-600";
   return (
     <button onClick={props.onClick} disabled={props.disabled} className={`${base} ${styles}`}>
       {props.label}
