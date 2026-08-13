@@ -28,7 +28,11 @@ export async function generateSuite(
   const withCriteria: (GeneratedScenario & { criteria: string[] })[] = await Promise.all(
     scenarios.map(async (s) => {
       if (s.grader !== "rubric") return { ...s, criteria: [] };
-      const rule = confirmed.find((r) => r.id === s.ruleIds[0]) ?? confirmed[0];
+      const rule = confirmed.find((r) => r.id === s.ruleIds[0]);
+      if (!rule) {
+        console.warn(`generate: scenario ${s.id} cites unknown rule ${s.ruleIds[0]}; no rubric`);
+        return { ...s, criteria: [] };
+      }
       const { criteria } = await intelligence.generateRubric({
         scenario: s,
         ruleCondition: rule.condition,

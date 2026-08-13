@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { evidence, rules } from "@/lib/db/schema";
 import type { ProvisionalRule } from "@/lib/intelligence/provider";
@@ -36,17 +36,15 @@ export function setRuleStatus(id: string, status: RuleStatus): Promise<RuleRow[]
     .returning();
 }
 
+// Atomic append + dedupe: concurrent turns must not clobber each other.
 export async function attachContextSource(id: string, source: string): Promise<void> {
-  const rows = await db
-    .select({ contextSources: rules.contextSources })
-    .from(rules)
-    .where(eq(rules.id, id));
-  const current = rows[0]?.contextSources ?? [];
-  if (current.includes(source)) return;
   await db
     .update(rules)
-    .set({ contextSources: [...current, source], updatedAt: new Date() })
-    .where(eq(rules.id, id));
+    .set({
+      contextSources: sql`array_append(${rules.contextSources}, ${source})`,
+      updatedAt: new Date(),
+    })
+    .where(and(eq(rules.id, id), sql`not (${source} = any(${rules.contextSources}))`));
 }
 
 export function updateRule(

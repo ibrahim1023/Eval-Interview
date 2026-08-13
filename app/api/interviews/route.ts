@@ -34,7 +34,8 @@ export async function POST(request: Request) {
         source: { url: parsed.data.knowledgeSourceUrl },
       });
       await setCrawlStatus(interview.id, pageCount > 0 ? "ready" : "failed");
-    } catch {
+    } catch (err) {
+      console.error(`knowledge crawl failed for interview ${interview.id}:`, err);
       await setCrawlStatus(interview.id, "failed");
     }
   });

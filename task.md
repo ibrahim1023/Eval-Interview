@@ -44,6 +44,11 @@ for the full phase plan and history.
 
 ## Deferred from Phase 2/3
 
+- **Concurrent-turn double-processing** — the turn replay guard is
+  check-then-act; two genuinely concurrent turns for one interview could both
+  process. ElevenLabs serializes turns and the timeout-resubmit path is
+  covered by the replay guard, so this is a narrow theoretical race. If it
+  ever surfaces, gate `processTurn` on a per-interview lock.
 - **Contrastive scenarios bundle two cases into one expected action** — emit
   two linked scenario entries instead.
 - **Scenario inputs are LLM-invented shapes** (dates as YAML date objects

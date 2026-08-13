@@ -93,7 +93,8 @@ export async function processTurn(
 ): Promise<ProcessTurnResult> {
   try {
     return await runLoop(deps, interviewId, expertContent);
-  } catch {
+  } catch (err) {
+    console.error(`processTurn failed for interview ${interviewId}:`, err);
     await deps.store.addMessage({
       interviewId,
       speaker: "interviewer",

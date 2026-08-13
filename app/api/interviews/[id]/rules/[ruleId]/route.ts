@@ -3,6 +3,7 @@ import { z } from "zod";
 import { db } from "@/lib/db";
 import { rules } from "@/lib/db/schema";
 import { and, eq } from "drizzle-orm";
+import { canTransition } from "@/lib/rules/model";
 import { setRuleStatus, updateRule } from "@/lib/rules/repository";
 
 const actionSchema = z.discriminatedUnion("action", [
@@ -32,7 +33,7 @@ export async function POST(
   }
 
   const [rule] = await db
-    .select({ id: rules.id })
+    .select({ id: rules.id, status: rules.status })
     .from(rules)
     .where(and(eq(rules.id, ruleId), eq(rules.interviewId, id)));
   if (!rule) {
@@ -56,6 +57,12 @@ export async function POST(
       : input.action === "unresolved"
         ? "unresolved"
         : "provisional";
+  if (status !== rule.status && !canTransition(rule.status, status)) {
+    return NextResponse.json(
+      { error: `Cannot move from ${rule.status} to ${status}` },
+      { status: 409 },
+    );
+  }
   const [updated] = await setRuleStatus(ruleId, status);
   return NextResponse.json(updated);
 }
