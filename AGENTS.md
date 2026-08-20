@@ -95,6 +95,13 @@ npm run build
 
 Python runner changes must also be verified with the relevant Python tests or
 an exported-suite smoke test. Commit no secrets; update `.env.example` if env
+
+Accepted risk (2026-08-20): `npm audit` flags `esbuild <=0.24.2`
+(GHSA-67mh-4wv8-2f99) via the abandoned `@esbuild-kit/*` chain inside
+`drizzle-kit`. Dev-only CLI tooling; the advisory targets esbuild's dev
+server, which nothing here runs. Do not "fix" it with `npm audit fix
+--force` (that downgrades drizzle-kit to a breaking version); wait for
+drizzle-kit 1.x to drop the chain.
 vars change. Update `task.md` in the same commit as the work it tracks. Keep
 `README.md` free of implementation progress — it is human-facing product
 documentation; status lives in `docs/roadmap.md`, current work in `task.md`.
