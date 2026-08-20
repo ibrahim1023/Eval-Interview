@@ -38,6 +38,13 @@ npm run db:generate / db:migrate / db:push / db:studio
 cd eval-runner && pip install -e . && evalinterview run ./generated-evals
 ```
 
+The live Supabase database is managed with `db:push`; its
+`drizzle.__drizzle_migrations` journal is empty, so `db:migrate` replays from
+0000 and hangs on the pooler. Custom SQL migrations (e.g. 0004 RLS) must be
+applied directly with the `postgres` client, keeping the file for fresh
+environments. RLS is enabled on all tables (0004) — the app connects as the
+`postgres` role, which bypasses it; PostgREST/anon access is denied.
+
 One-time ElevenLabs tool/agent setup scripts live in `scripts/` and are
 documented in `docs/elevenlabs-console-setup.md`. Do not use the ElevenLabs
 console JSON editor for this shape; its internal schema is unreliable.
